@@ -55,12 +55,15 @@
         "scss_bundles": [
             {
                 "name": "popupStyle",
-                "src":"./src/popup/*.scss"
+                "src": "./src/popup/*.scss"
             },
             {
                 "name": "contentStyle",
-                "src":"./src/content/*.scss"
+                "src": "./src/content/*.scss"
             }
         ]
+    },
+    "dependencies": {
+        "firebase": "^9.17.2"
     }
 }
