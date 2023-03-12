@@ -56,7 +56,7 @@ const getSoupParts = (foodRowElements) => {
     return soupParts;
 }
 
-const searchForFoodPicture = async (foodName, index) => {
+const googleSearchForFoodPicture = async (foodName, index) => {
     const foodPictureSearch = await chrome.runtime.sendMessage(        {
         type: "GET_IMAGE",
         query: foodName,
@@ -67,41 +67,59 @@ const searchForFoodPicture = async (foodName, index) => {
     return foodPictureSearch;
 }
 
-const addImageToFood = async (foodRowElement, soupParts) => {
-    if (!foodRowElement) {
-        return;
+
+import { initializeApp } from "firebase/app";
+import { getStorage, ref, getDownloadURL  } from "firebase/storage";
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+    apiKey: "AIzaSyDuz41HpiuRIhAud4-8342byRxCiCxK4Nk",
+    authDomain: "seminary-primirest-plus-fb.firebaseapp.com",
+    projectId: "seminary-primirest-plus-fb",
+    storageBucket: "seminary-primirest-plus-fb.appspot.com",
+    messagingSenderId: "525183147276",
+    appId: "1:525183147276:web:d5700e78ec1033cabb7d29",
+    measurementId: "G-VJZEBNY05B"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+
+const firebaseStorage = getStorage(firebaseApp);
+
+const tryGetExistingImage = async (foodName) => {
+    const query = `${foodName}.png`;
+    const imageRef = ref(firebaseStorage, query);
+
+    try {
+        try {
+            const url = await getDownloadURL(imageRef)
+            const response = await fetch(url);
+            //const blob = await response.blob();
+            //const objectUrl = URL.createObjectURL(blob);
+            return response.url;
+        } catch {
+
+        }
+    } catch (error) {
+        if(error.code === 'storage/object-not-found') {
+            return undefined;
+        }
+        console.error(error);
     }
 
-    //Get food name
-    const foodNameElement = foodRowElement.querySelector("td:nth-child(4) a");
-    let foodName = getFoodName(foodNameElement.innerHTML, soupParts);
-    logger.log(foodName, "#11 Names");
+}
 
-    //Get pictures for food
-    //foodPicture, searchIndex, minSearchIndex
-
-    let foodPictureSearch = await searchForFoodPicture(foodName, 0);
+const addGoogleImageWithControl = async (foodImagesHolder, foodImageElement, foodName) => {
+    let foodPictureSearch = await googleSearchForFoodPicture(foodName, 0);
     if(foodPictureSearch.foodPicture === undefined) {
         logger.log('No image avaliable', '#11');
         return;
     }
 
-    //Create image holder
-    const foodImagesHolder = document.createElement("div");
-    foodImagesHolder.className = 'food-images-holder';
-    foodRowElement.appendChild(foodImagesHolder);
-
-    //Create image
     let pictureUrl = foodPictureSearch.foodPicture.link;
-    
-    const foodImageElement = document.createElement("img");
-    foodImageElement.className = 'food-image';
     foodImageElement.setAttribute("src", pictureUrl);
-    foodImageElement.setAttribute("alt", foodName);
 
-    const imageLoading = document.createElement('div');
-    imageLoading.className = 'food-image-loading'
-    
     //Create food image control
     const btnSearchForNew = document.createElement('button');
     btnSearchForNew.className='food-image-control';
@@ -112,11 +130,11 @@ const addImageToFood = async (foodRowElement, soupParts) => {
 
         //New search
         foodPictureSearch.searchIndex++;
-        foodPictureSearch = await searchForFoodPicture(foodName, foodPictureSearch.searchIndex);
+        foodPictureSearch = await googleSearchForFoodPicture(foodName, foodPictureSearch.searchIndex);
 
         //If no other image was found, loop around to the start
         if(foodPictureSearch.foodPicture === undefined) {
-            foodPictureSearch = await searchForFoodPicture(foodName, 0);
+            foodPictureSearch = await googleSearchForFoodPicture(foodName, 0);
         }
         pictureUrl = foodPictureSearch.foodPicture.link;
         
@@ -128,11 +146,45 @@ const addImageToFood = async (foodRowElement, soupParts) => {
         imageLoading.classList.toggle('active', false);
         btnSearchForNew.disabled = false;
     }
-    
+
+    const imageLoading = document.createElement('div');
+    imageLoading.className = 'food-image-loading'
+
     //Add controls and image
     foodImagesHolder.appendChild(imageLoading);
-    foodImagesHolder.appendChild(foodImageElement);
     foodImagesHolder.appendChild(btnSearchForNew);
+}
+const addImageToFood = async (foodRowElement, soupParts) => {
+    if (!foodRowElement) {
+        return;
+    }
+
+    //Get food name
+    const foodNameElement = foodRowElement.querySelector("td:nth-child(4) a");
+    let foodName = getFoodName(foodNameElement.innerHTML, soupParts);
+    logger.log(foodName, "#11 Names");
+
+
+    //Create image holder
+    const foodImagesHolder = document.createElement("div");
+    foodImagesHolder.className = 'food-images-holder';
+    foodRowElement.appendChild(foodImagesHolder);
+    
+    const foodImageElement = document.createElement("img");
+    foodImageElement.className = 'food-image';
+    foodImageElement.setAttribute("alt", foodName);
+
+    const existingImage = await tryGetExistingImage(foodName);
+    console.log(existingImage);
+    if(existingImage !== undefined) {
+        //Use existing image
+        foodImageElement.setAttribute('src', existingImage);
+    } else {
+        //Use google image
+        await addGoogleImageWithControl(foodImagesHolder, foodImageElement, foodName);
+    }
+
+    foodImagesHolder.appendChild(foodImageElement);
 }
 
 const handleFoodList = async () => {

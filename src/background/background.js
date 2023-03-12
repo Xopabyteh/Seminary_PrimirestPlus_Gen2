@@ -71,10 +71,9 @@ const getGoogleImagePicture = async (query, startFrom) => {
     return items[0];
 }
 
-import { initializeApp } from "firebase/app";
-import { getStorage } from "firebase/storage";
 
 
+    
 const searchForFoodPicture = async (foodName, startFrom) => {
     const foodPictureSearch = {
         foodPicture: undefined,
