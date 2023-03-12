@@ -1,0 +1,66 @@
+{
+    "name": "seminary-primirestplusgen2",
+    "description": "",
+    "version": "0.0.1",
+    "homepage": "http://chrome.google.com/webstore",
+    "author": "ENTER YOUR NAME HERE",
+    "repository": {
+        "type": "git",
+        "url": "ENTER GIT REPO URL"
+    },
+    "scripts": {
+        "start": "xt-build -e dev -w",
+        "start:firefox": "xt-build -e dev -p firefox -w",
+        "build": "xt-build",
+        "build:firefox": "xt-build -e prod -p firefox",
+        "clean": "xt-clean",
+        "docs": "xt-docs",
+        "test": "xt-test",
+        "coverage": "nyc --reporter=lcov npm run test",
+        "sync": "xt-sync"
+    },
+    "babel": {
+        "presets": [
+            "@babel/preset-env"
+        ]
+    },
+    "devDependencies": {
+        "extension-cli": "latest"
+    },
+    "xtdocs": {
+        "source": {
+            "include": [
+                "README.md",
+                "src"
+            ]
+        }
+    },
+    "xtbuild": {
+        "dist": "./build",
+        "releases": "./build",
+        "js_bundles": [
+            {
+                "name": "background",
+                "src": "./src/background/*.js"
+            },
+            {
+                "name": "content",
+                "src": "./src/content/*.js"
+            },
+            {
+                "name": "popup",
+                "src": "./src/popup/*.js"
+            }
+        ],
+        "scss_bundles": [
+            {
+                "name": "popupStyle",
+                "src":"./src/popup/*.scss"
+            },
+            {
+                "name": "contentStyle",
+                "src":"./src/content/*.scss"
+            }
+        ]
+    }
+}
