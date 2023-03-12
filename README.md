@@ -1,10 +1,6 @@
 # Seminary_PrimirestPlusGen2
 An extension for [Primirest](https://www.mujprimirest.cz/) that serves as my seminary work for the years 2022 - 2023
 
-Here's a sentence with a footnote. [^1]
-
-[^1]: This is the footnote.
-
 ## Features
 - [x] Web styling
 - [x] Google images support
