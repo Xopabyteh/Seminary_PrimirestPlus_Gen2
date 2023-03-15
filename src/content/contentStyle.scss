@@ -91,13 +91,17 @@
     grid-area: food-images-holder;
     position: relative;
 
-    width: 512px;
-    height: max-content;
+    max-width: 512px;
+    max-height: 512px;
+    width: min-content;
+    height: auto;
 }
 
 .food-image {
+    max-width: inherit;
+    max-height: inherit;
     display: block;
-    width: 100%;
+    // width: 100%;
 }
 
 .food-image-loading {

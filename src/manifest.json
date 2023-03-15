@@ -34,7 +34,7 @@
         {
             "js": ["content.js"],
             "css": ["contentStyle.css"],
-            "matches": ["https://www.mujprimirest.cz/*"],
+            "matches": ["*://*.mujprimirest.cz/*"],
             "run_at": "document_idle"
         }
     ]

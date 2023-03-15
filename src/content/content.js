@@ -56,11 +56,12 @@ const getSoupParts = (foodRowElements) => {
     return soupParts;
 }
 
-const googleSearchForFoodPicture = async (foodName, index) => {
+const googleSearchForFoodPicture = async (foodName, index, sizeIndex) => {
     const foodPictureSearch = await chrome.runtime.sendMessage(        {
         type: "GET_IMAGE",
         query: foodName,
-        index: index
+        index: index,
+        sizeIndex: sizeIndex
     })
 
     logger.log(foodPictureSearch);
@@ -111,8 +112,8 @@ const tryGetExistingImage = async (foodName) => {
 }
 
 const addGoogleImageWithControl = async (foodImagesHolder, foodImageElement, foodName) => {
-    let foodPictureSearch = await googleSearchForFoodPicture(foodName, 0);
-    if(foodPictureSearch.foodPicture === undefined) {
+    let foodPictureSearch = await googleSearchForFoodPicture(foodName, 1, 0);
+    if(foodPictureSearch.foodPicture === undefined || foodPictureSearch.foodPicture.link === undefined) {
         logger.log('No image avaliable', '#11');
         return;
     }
@@ -123,18 +124,17 @@ const addGoogleImageWithControl = async (foodImagesHolder, foodImageElement, foo
     //Create food image control
     const btnSearchForNew = document.createElement('button');
     btnSearchForNew.className='food-image-control';
-    btnSearchForNew.innerHTML = '->';
+    btnSearchForNew.innerHTML = 'F5';
     btnSearchForNew.onclick = async () => {
         btnSearchForNew.disabled = true;
         imageLoading.classList.toggle('active', true);
 
         //New search
-        foodPictureSearch.searchIndex++;
-        foodPictureSearch = await googleSearchForFoodPicture(foodName, foodPictureSearch.searchIndex);
+        foodPictureSearch = await googleSearchForFoodPicture(foodName, foodPictureSearch.searchIndex, foodPictureSearch.sizeIndex);
 
         //If no other image was found, loop around to the start
         if(foodPictureSearch.foodPicture === undefined) {
-            foodPictureSearch = await googleSearchForFoodPicture(foodName, 0);
+            foodPictureSearch = await googleSearchForFoodPicture(foodName, 1, 0);
         }
         pictureUrl = foodPictureSearch.foodPicture.link;
         

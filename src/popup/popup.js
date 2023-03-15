@@ -47,8 +47,8 @@ const init = async () => {
     buttonDeveloperMode.addEventListener("click",onDeveloperModeButton);
 }
 
-chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
-    console.log(msg);
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    // console.log(msg);
     switch(msg.type) {
         //Activate the developer slider to match storage
         case "DEVELOPER_CHANGED": 
