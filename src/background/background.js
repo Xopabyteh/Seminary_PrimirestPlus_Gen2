@@ -144,7 +144,7 @@ const toggleDeveloperMode = async () => {
 }
 const getDeveloperMode = async () => {
     const storageResult = await chrome.storage.local.get(storageKey_IsDeveloper);
-    if(storageResult == undefined) {
+    if(storageResult == undefined || storageResult.isDeveloper == undefined) {
         chrome.storage.local.set({ isDeveloper : false });
         return false;
     }
