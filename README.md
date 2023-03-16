@@ -3,6 +3,7 @@ An extension for [Primirest](https://www.mujprimirest.cz/) that serves as my sem
 
 ## Features
 - [x] Web styling
+- [x] Food highlighting support
 - [x] Google images support
 - [x] Own food images support
 - [ ] All food images captured

@@ -15,21 +15,31 @@ const getCommonSubstring = (str1, str2) => {
     return commonSubstring;
 }
 
-const getFoodName = (fullFoodName, soupParts) => {
+const getFoodObject = (fullFoodName, soupParts) => {
     let foodName = fullFoodName;
+    let soupName = undefined;
 
     //Remove the soup part from the name
     for (let soupPart of soupParts) {
         if (fullFoodName.indexOf(soupPart) !== -1) {
+            soupName = soupPart;
             foodName = foodName.replace(soupPart, "");
             break;
         }
     }
 
     //Delete parentheses -> (x...z)
-    foodName = foodName.replace(/\([^)]*\)/g, '');
+    let foodDetail = foodName.match(/\([^)]*\)/g);
+    if(foodDetail == undefined || foodDetail[0] == undefined) {
+        foodDetail = ''; 
+    } else {
+        foodDetail = foodDetail[0];
+        foodName = foodName.replace(foodDetail, '');
+    }
+
     foodName = foodName.trim();
-    return foodName;
+
+    return {foodName: foodName, soupName: soupName, foodDetail: foodDetail};
 }
 
 const getSoupParts = (foodRowElements) => {
@@ -166,6 +176,8 @@ const addGoogleImageWithControl = async (foodImagesHolder, foodImageElement, foo
     foodImagesHolder.appendChild(imageLoading);
     foodImagesHolder.appendChild(btnSearchForNew);
 }
+
+//Also adds text highlighting
 const addImageToFood = async (foodRowElement, soupParts) => {
     if (!foodRowElement) {
         return;
@@ -173,7 +185,14 @@ const addImageToFood = async (foodRowElement, soupParts) => {
 
     //Get food name
     const foodNameElement = foodRowElement.querySelector("td:nth-child(4) a");
-    let foodName = getFoodName(foodNameElement.innerHTML, soupParts);
+    let foodObject = getFoodObject(foodNameElement.innerHTML, soupParts);
+    const foodName = foodObject.foodName;
+    const soupName = foodObject.soupName;
+    const foodDetail = foodObject.foodDetail;
+
+    //Add food highlighting
+    const highlightedHTML = `${soupName} <b>${foodName}</b> ${foodDetail}`;
+    foodNameElement.innerHTML = highlightedHTML;
     logger.log(foodName, "#11 Names");
 
 
