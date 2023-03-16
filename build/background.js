@@ -28,7 +28,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     let page = pageComponents[pageComponents.length - 1];
 
     let isDeveloper = await getDeveloperMode();
-
+    console.log(isDeveloper);
     //Send tab to tabId
     chrome.tabs.sendMessage(
         tabId,
@@ -149,6 +149,10 @@ const toggleDeveloperMode = async () => {
 }
 const getDeveloperMode = async () => {
     const storageResult = await chrome.storage.local.get(storageKey_IsDeveloper);
+    if(storageResult == undefined) {
+        chrome.storage.local.set({ isDeveloper : false });
+        return false;
+    }
     return storageResult.isDeveloper;
 }
 
