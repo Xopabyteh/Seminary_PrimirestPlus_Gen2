@@ -25,6 +25,7 @@
         ]
     },
     "devDependencies": {
+        "eslint-scope": "^7.1.1",
         "extension-cli": "latest"
     },
     "xtdocs": {
@@ -64,6 +65,7 @@
         ]
     },
     "dependencies": {
-        "firebase": "^9.17.2"
+        "firebase": "^9.17.2",
+        "string-similarity": "^4.0.4"
     }
 }

@@ -28,6 +28,7 @@ const getFoodName = (fullFoodName, soupParts) => {
 
     //Delete parentheses -> (x...z)
     foodName = foodName.replace(/\([^)]*\)/g, '');
+    foodName = foodName.trim();
     return foodName;
 }
 
@@ -70,10 +71,8 @@ const googleSearchForFoodPicture = async (foodName, index, sizeIndex) => {
 
 
 import { initializeApp } from "firebase/app";
-import { getStorage, ref, getDownloadURL  } from "firebase/storage";
+import { getStorage, ref, getDownloadURL, listAll  } from "firebase/storage";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
     apiKey: "AIzaSyDuz41HpiuRIhAud4-8342byRxCiCxK4Nk",
     authDomain: "seminary-primirest-plus-fb.firebaseapp.com",
@@ -87,25 +86,38 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 
 const firebaseStorage = getStorage(firebaseApp);
+let storedFoodItems = undefined;
 
+import { compareTwoStrings } from 'string-similarity'; 
+
+//Caches all image refs from database and uses it as a lookup table for loading existing images
+//Food match is threshold based
 const tryGetExistingImage = async (foodName) => {
-    const query = `${foodName}.png`;
-    const imageRef = ref(firebaseStorage, query);
+    if(storedFoodItems === undefined) {
+        const res = await listAll(ref(firebaseStorage))
+        storedFoodItems = res.items;
+    }
 
+    const query = `${foodName}.png`;
+
+    //If there is a string, that matches a foodname in atleast n%, use it 
+    const storedFood = storedFoodItems.find(e => compareTwoStrings(e.name, query) > 0.9)
+    if(storedFood === undefined) {
+        return undefined;
+    }
+    
     try {
         try {
-            const url = await getDownloadURL(imageRef)
+            const url = await getDownloadURL(storedFood)
             const response = await fetch(url);
-            //const blob = await response.blob();
-            //const objectUrl = URL.createObjectURL(blob);
             return response.url;
         } catch {
-
+            //NOOP
         }
     } catch (error) {
-        if(error.code === 'storage/object-not-found') {
-            return undefined;
-        }
+        // if(error.code === 'storage/object-not-found') {
+        //     return undefined;
+        // }
         console.error(error);
     }
 
@@ -175,7 +187,7 @@ const addImageToFood = async (foodRowElement, soupParts) => {
     foodImageElement.setAttribute("alt", foodName);
 
     const existingImage = await tryGetExistingImage(foodName);
-    console.log(existingImage);
+    logger.log(existingImage);
     if(existingImage !== undefined) {
         //Use existing image
         foodImageElement.setAttribute('src', existingImage);
@@ -248,7 +260,19 @@ const handleFoodList = async () => {
 
         //#11 - Add images to food
         const foodRowElements = document.querySelectorAll(".jidlo-mini tbody tr");
-        let soupParts = getSoupParts(foodRowElements);
+        let soupParts = undefined;
+
+        //We're on index page
+        if(foodRowElements.length % 3 == 1) {
+            const display = foodRowElements[0];
+            const deleteButton = display.querySelector('.text-center');
+            deleteButton.remove();
+
+            logger.log(foodRowElements, "Index page fix")
+            soupParts = getSoupParts([foodRowElements[1], foodRowElements[2], foodRowElements[3]]);
+        }
+
+        soupParts = soupParts ?? getSoupParts(foodRowElements);
         logger.log(soupParts, "#11 Soup parts");
 
         for (const foodRowElement of foodRowElements) {
@@ -269,9 +293,9 @@ const handleFoodList = async () => {
 const onTabUpdated = async (tabInfo) => {
     logger.log("Tab updated", 'onTabUpdated');
 
+    await handleFoodList();
     //Food list
     if (tabInfo.tab.url.includes("boarding")) {
-        await handleFoodList();
 
         //On food date picker change
         let foodDatePicker =
