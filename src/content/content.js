@@ -280,11 +280,6 @@ const onTabUpdated = async (tabInfo) => {
         foodDatePicker.addEventListener("change", handleFoodList);
     }
 
-            
-    let pageHeader = document.getElementsByClassName("zavod")[0];
-    pageHeader.innerHTML = tabInfo.page;
-    logger.log(tabInfo, "onTabUpdated");
-
     //#10 Fix
     let rightPanel = document.querySelector("body > div.warp > div.pravy-panel");
     rightPanel.remove();

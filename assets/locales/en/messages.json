@@ -1,11 +1,11 @@
 {
     "appName": {
-        "message": "Seminary_PrimirestPlusGen2"
+        "message": "Primirest Plus"
     },
     "appShortName": {
-        "message": "Seminary_PrimirestPlusGen2"
+        "message": "Primirest+"
     },
     "appDescription": {
-        "message": ""
+        "message": "Better Primirest experience"
     }
 }
