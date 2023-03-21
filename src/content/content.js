@@ -55,8 +55,10 @@ const getSoupParts = (foodRowElements) => {
     }
     for (let i = 0; i < fullFoodNames.length;) {
         const fThis = fullFoodNames[i];
-        const fNext = fullFoodNames[i + 1];
-        const soupName = getCommonSubstring(fThis, fNext);
+        const fNext1 = fullFoodNames[i + 1];
+        const fNext2 = fullFoodNames[i + 2];
+        let soupName = getCommonSubstring(fThis, fNext1);
+        soupName = getCommonSubstring(soupName, fNext2);
         if (soupName === '') {
             continue;
         }
@@ -96,38 +98,42 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 
 const firebaseStorage = getStorage(firebaseApp);
-let storedFoodItems = undefined;
+let storedFoodItemQueries = undefined;
 
 import { compareTwoStrings } from 'string-similarity'; 
 
 //Caches all image refs from database and uses it as a lookup table for loading existing images
 //Food match is threshold based
 const tryGetExistingImage = async (foodName) => {
-    if(storedFoodItems === undefined) {
+    if(storedFoodItemQueries == undefined) {
+        storedFoodItemQueries = [];
         const res = await listAll(ref(firebaseStorage))
-        storedFoodItems = res.items;
+        const storedFoodItems = res.items;
+
+        for (const storedFoodItem of storedFoodItems) {
+            const name = storedFoodItem.name;
+            const fileTypeIndex = name.lastIndexOf(".");
+            let query = name.substring(0, fileTypeIndex); // String without file type: "hello.png" => "hello"
+            storedFoodItemQueries.push({itemReference: storedFoodItem, query: query});
+        }
+        logger.log(storedFoodItemQueries, "Initialize food queries");
     }
 
-    const query = `${foodName}.png`;
 
     //If there is a string, that matches a foodname in atleast n%, use it 
-    const storedFood = storedFoodItems.find(e => compareTwoStrings(e.name, query) > 0.9)
-    if(storedFood === undefined) {
+    const storedFoodItem = storedFoodItemQueries.find(e => {
+        console.log(`${e.query}|||${foodName}`);
+        compareTwoStrings(e.query, foodName) > 0.5;
+    });
+    if(storedFoodItem == undefined || storedFoodItem.itemReference == undefined) {
         return undefined;
     }
     
     try {
-        try {
-            const url = await getDownloadURL(storedFood)
-            const response = await fetch(url);
-            return response.url;
-        } catch {
-            //NOOP
-        }
+        const url = await getDownloadURL(storedFood)
+        const response = await fetch(url);
+        return response.url;
     } catch (error) {
-        // if(error.code === 'storage/object-not-found') {
-        //     return undefined;
-        // }
         console.error(error);
     }
 
@@ -281,8 +287,8 @@ const handleFoodList = async () => {
         const foodRowElements = document.querySelectorAll(".jidlo-mini tbody tr");
         let soupParts = undefined;
 
-        //We're on index page
         if(foodRowElements.length % 3 == 1) {
+            //We're on index page
             const display = foodRowElements[0];
             const deleteButton = display.querySelector('.text-center');
             deleteButton.remove();
