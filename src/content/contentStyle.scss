@@ -85,22 +85,50 @@
         grid-area: cart;
     }
 
+.no-data-info {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
 
-.food-images-holder {
-    display: inline-block;
     grid-area: food-images-holder;
     position: relative;
 
+    height: 300px;
+    width: auto;
+}
+
+.no-data-info b {
+    font-size:3em;
+}
+
+.no-data-info i {
+    font-size:1em;
+}
+
+.food-images-holder {
+    display: inline-flex;
+    justify-content: center;
+    grid-area: food-images-holder;
+    position: relative;
+
+    height: 300px;
+    width: auto;
+
     max-width: 512px;
-    max-height: 512px;
-    width: min-content;
-    height: auto;
+    // max-width: 512px;
+    // max-height: 512px;
+    // width: min-content;
+    // height: auto;
 }
 
 .food-image {
+    height: inherit;
+    width: inherit;
     max-width: inherit;
-    max-height: inherit;
-    display: block;
+    // max-width: inherit;
+    // max-height: inherit;
+    // display: block;
     // width: 100%;
 }
 

@@ -120,15 +120,46 @@ const tryGetExistingImage = async (foodName) => {
     return undefined;
 }
 
-const addGoogleImageWithControl = async (foodImagesHolder, foodImageElement, foodName) => {
+//Need to store images, so that they can be deleted, as the single day picking doesn't remove them automatically
+const existingImageHolders = [];
+
+//Create image holder
+const createFoodImageObject = (foodRowElement, foodName) => {
+    const foodImagesHolder = document.createElement("div");
+    foodImagesHolder.className = 'food-images-holder';
+    foodRowElement.appendChild(foodImagesHolder);
+    
+    const foodImageElement = document.createElement("img");
+    foodImageElement.className = 'food-image';
+    foodImageElement.setAttribute("alt", foodName);
+
+    foodImagesHolder.appendChild(foodImageElement);
+    existingImageHolders.push(foodImagesHolder);
+
+    return {foodImagesHolder: foodImagesHolder, foodImageElement: foodImageElement};
+}
+
+const indicateNonexistentImage = (foodRowElement) => {
+    const noDataInfo = document.createElement("div");
+    noDataInfo.className = 'no-data-info';
+    noDataInfo.innerHTML = '<b>Kuchařovo tajemství</b><i>Primirest+ ani Google jídlo nikdy neviděli.</i>'
+    foodRowElement.appendChild(noDataInfo);
+    
+    existingImageHolders.push(noDataInfo);
+} 
+
+//Returns false if no image exists, true if everything went successfully
+const addGoogleImageWithControl = async (foodRowElement, foodName) => {
     let foodPictureSearch = await googleSearchForFoodPicture(foodName, 1, 0);
     if(foodPictureSearch.foodPicture === undefined || foodPictureSearch.foodPicture.link === undefined) {
         logger.log('No image avaliable', '#11');
-        return;
+        return false;
     }
 
+    const imageObject = createFoodImageObject(foodRowElement, foodName);
+
     let pictureUrl = foodPictureSearch.foodPicture.link;
-    foodImageElement.setAttribute("src", pictureUrl);
+    imageObject.foodImageElement.setAttribute("src", pictureUrl);
 
     //Create food image control
     const btnSearchForNew = document.createElement('button');
@@ -148,10 +179,10 @@ const addGoogleImageWithControl = async (foodImagesHolder, foodImageElement, foo
         pictureUrl = foodPictureSearch.foodPicture.link;
         
         //Update html
-        foodImageElement.setAttribute("src", pictureUrl);
+        imageObject.foodImageElement.setAttribute("src", pictureUrl);
     }
     //Enable searching only after full image load
-    foodImageElement.onload = () => {
+    imageObject.foodImageElement.onload = () => {
         imageLoading.classList.toggle('active', false);
         btnSearchForNew.disabled = false;
     }
@@ -160,12 +191,10 @@ const addGoogleImageWithControl = async (foodImagesHolder, foodImageElement, foo
     imageLoading.className = 'food-image-loading'
 
     //Add controls and image
-    foodImagesHolder.appendChild(imageLoading);
-    foodImagesHolder.appendChild(btnSearchForNew);
+    imageObject.foodImagesHolder.appendChild(imageLoading);
+    imageObject.foodImagesHolder.appendChild(btnSearchForNew);
+    return true;
 }
-
-//Need to store images, so that they can be deleted, as the single day picking doesn't remove them automatically
-const existingImageHolders = [];
 
 //Also adds text highlighting
 const addImageToFood = async (foodRowElement, soupParts) => {
@@ -185,27 +214,19 @@ const addImageToFood = async (foodRowElement, soupParts) => {
     foodNameElement.innerHTML = highlightedHTML;
     logger.log(foodName, "#11 Names");
 
-
-    //Create image holder
-    const foodImagesHolder = document.createElement("div");
-    foodImagesHolder.className = 'food-images-holder';
-    foodRowElement.appendChild(foodImagesHolder);
-    
-    const foodImageElement = document.createElement("img");
-    foodImageElement.className = 'food-image';
-    foodImageElement.setAttribute("alt", foodName);
-
     const existingImage = await tryGetExistingImage(foodName);
     if(existingImage !== undefined) {
         //Use existing image
-        foodImageElement.setAttribute('src', existingImage);
+        const imageObject = createFoodImageObject(foodRowElement, foodName);
+        imageObject.foodImageElement.setAttribute('src', existingImage);
     } else {
         //Use google image
-        await addGoogleImageWithControl(foodImagesHolder, foodImageElement, foodName);
+        const imageExists = await addGoogleImageWithControl(foodRowElement, foodName);
+        if(!imageExists) {
+            //No image exists
+            indicateNonexistentImage(foodRowElement);
+        }
     }
-
-    existingImageHolders.push(foodImagesHolder);
-    foodImagesHolder.appendChild(foodImageElement);
 }
 
 let storedObserver = undefined;

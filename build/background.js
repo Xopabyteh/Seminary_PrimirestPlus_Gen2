@@ -81,7 +81,6 @@ const getGoogleImagePicture = async (query, startFrom, imgSize) => {
 const validImgSizes = [
     'huge',
     'xlarge',
-    'xxlarge'
 ]
 //Attempts per size, so in total its n * size
 const attemptThreshold = 7;
