@@ -77,7 +77,6 @@ const googleSearchForFoodPicture = async (foodName, index, sizeIndex) => {
         sizeIndex: sizeIndex
     })
 
-    logger.log(foodPictureSearch);
     return foodPictureSearch;
 }
 
@@ -98,45 +97,27 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 
 const firebaseStorage = getStorage(firebaseApp);
-let storedFoodItemQueries = undefined;
+let storedFoodItems = undefined;
 
 import { compareTwoStrings } from 'string-similarity'; 
 
 //Caches all image refs from database and uses it as a lookup table for loading existing images
 //Food match is threshold based
 const tryGetExistingImage = async (foodName) => {
-    if(storedFoodItemQueries == undefined) {
-        storedFoodItemQueries = [];
-        const res = await listAll(ref(firebaseStorage))
-        const storedFoodItems = res.items;
-
-        for (const storedFoodItem of storedFoodItems) {
-            const name = storedFoodItem.name;
-            const fileTypeIndex = name.lastIndexOf(".");
-            let query = name.substring(0, fileTypeIndex); // String without file type: "hello.png" => "hello"
-            storedFoodItemQueries.push({itemReference: storedFoodItem, query: query});
-        }
-        logger.log(storedFoodItemQueries, "Initialize food queries");
-    }
-
-
     //If there is a string, that matches a foodname in atleast n%, use it 
-    const storedFoodItem = storedFoodItemQueries.find(e => {
-        console.log(`${e.query}|||${foodName}`);
-        compareTwoStrings(e.query, foodName) > 0.5;
-    });
-    if(storedFoodItem == undefined || storedFoodItem.itemReference == undefined) {
+    const storedFoodItem = await storedFoodItems.find(e => compareTwoStrings(e.query, foodName) > 0.8);
+    if(storedFoodItem == undefined || storedFoodItem.ref == undefined) {
         return undefined;
     }
     
     try {
-        const url = await getDownloadURL(storedFood)
+        const url = await getDownloadURL(storedFoodItem.ref)
         const response = await fetch(url);
         return response.url;
     } catch (error) {
         console.error(error);
     }
-
+    return undefined;
 }
 
 const addGoogleImageWithControl = async (foodImagesHolder, foodImageElement, foodName) => {
@@ -183,6 +164,9 @@ const addGoogleImageWithControl = async (foodImagesHolder, foodImageElement, foo
     foodImagesHolder.appendChild(btnSearchForNew);
 }
 
+//Need to store images, so that they can be deleted, as the single day picking doesn't remove them automatically
+const existingImageHolders = [];
+
 //Also adds text highlighting
 const addImageToFood = async (foodRowElement, soupParts) => {
     if (!foodRowElement) {
@@ -212,7 +196,6 @@ const addImageToFood = async (foodRowElement, soupParts) => {
     foodImageElement.setAttribute("alt", foodName);
 
     const existingImage = await tryGetExistingImage(foodName);
-    logger.log(existingImage);
     if(existingImage !== undefined) {
         //Use existing image
         foodImageElement.setAttribute('src', existingImage);
@@ -221,16 +204,57 @@ const addImageToFood = async (foodRowElement, soupParts) => {
         await addGoogleImageWithControl(foodImagesHolder, foodImageElement, foodName);
     }
 
+    existingImageHolders.push(foodImagesHolder);
     foodImagesHolder.appendChild(foodImageElement);
 }
 
+let storedObserver = undefined;
 const handleFoodList = async () => {
+    const fullDisplayOption = document.querySelector("body > div.warp > div.stredni-panel > div.panel.panel-default.panel-filter > div > div.menu-view-type-select.panel-control.responsive-control > select > option:nth-child(1)");
+    const viewMode = fullDisplayOption.getAttribute('selected') == 'selected' ? 'full' : 'compact'; 
+
+    logger.log(`viewMode: ${viewMode}`, "handleFoodList");
+    const disconnectObserver = () => {
+        logger.log('Disconnecting observer', 'disconnectObserver()')
+        storedObserver.disconnect();
+        storedObserver = undefined;
+    }
     const onFoodBoardingMutate = async (mutationList, observer) => {
         logger.log(mutationList, "onFoodBoardingMutate()");
-        //This `if` is necessary, because when the date in the food picker is changed, it first removes the whole table, then it adds an alert and then it adds the table again
-        //We want to observe until the second table is added and the alret change produces only 2 mutations, so we listen until we get more than 2 mutations at once => we got our new table
-        if (mutationList.length > 2) {
-            observer.disconnect();
+        if(viewMode == 'compact') {
+            if (
+                mutationList.length === 6
+                && mutationList[0].removedNodes.length === 1
+                && mutationList[1].addedNodes.length === 1
+                ) {
+                disconnectObserver();
+            } 
+            else {
+                return;
+            }
+        } else if(viewMode == 'full') {
+            if (
+                (
+                    mutationList.length === 10
+                ) ||
+                (
+                mutationList.length === 2
+                && mutationList[0].removedNodes.length === 1
+                && mutationList[1].addedNodes.length === 1
+                )
+                ) {
+                disconnectObserver();
+            } 
+        }
+
+        logger.log('Ready to work with foodList', 'Observer')
+        //Remove existing images
+        while(true) {
+            const holder = existingImageHolders.pop();
+            if(holder == undefined) {
+                break;
+            }
+            holder.remove();
         }
 
         //#8
@@ -241,13 +265,13 @@ const handleFoodList = async () => {
         for (let newPriceElement of newPriceElements) {
             newPriceElement.innerHTML = `${newPriceElement.innerHTML}: ${oldPriceElement.innerHTML},-`;
         }
-        logger.log(newPriceElements, "#8");
-        logger.log(oldPriceElement, "#8");
+        // logger.log(newPriceElements, "#8");
+        // logger.log(oldPriceElement, "#8");
 
         //#9    
         let calorieCircleParentElements = document.querySelectorAll(".jidlo-mini tbody tr td:has(img)");
 
-        logger.log(calorieCircleParentElements, "#9a");
+        // logger.log(calorieCircleParentElements, "#9a");
 
         for (let calorieCircleParent of calorieCircleParentElements) {
             let calorieCircleElement = calorieCircleParent.querySelector(":scope > img");
@@ -287,11 +311,13 @@ const handleFoodList = async () => {
         const foodRowElements = document.querySelectorAll(".jidlo-mini tbody tr");
         let soupParts = undefined;
 
-        if(foodRowElements.length % 3 == 1) {
+        if(viewMode === 'full' || foodRowElements.length % 3 == 1) {
             //We're on index page
             const display = foodRowElements[0];
             const deleteButton = display.querySelector('.text-center');
-            deleteButton.remove();
+            if(deleteButton != undefined) {
+                deleteButton.remove();
+            }
 
             logger.log(foodRowElements, "Index page fix")
             soupParts = getSoupParts([foodRowElements[1], foodRowElements[2], foodRowElements[3]]);
@@ -300,12 +326,33 @@ const handleFoodList = async () => {
         soupParts = soupParts ?? getSoupParts(foodRowElements);
         logger.log(soupParts, "#11 Soup parts");
 
+        //Load stored images
+        if(storedFoodItems == undefined) {
+            storedFoodItems = [];
+            const res = await listAll(ref(firebaseStorage))
+            const refs = res.items;
+            
+            for (const ref of refs) {
+                const name = ref.name;
+                const fileTypeIndex = name.lastIndexOf(".");
+                let query = name.substring(0, fileTypeIndex); // String without file type: "hello.png" => "hello"
+                storedFoodItems.push({ref: ref, query: query});
+            }
+            
+            logger.log(storedFoodItems, 'Init storedFoodItems')
+        }
+        
+        //Add images to food
         for (const foodRowElement of foodRowElements) {
             addImageToFood(foodRowElement, soupParts);
         }
     };
 
+    if(storedObserver != undefined) {
+        storedObserver.disconnect();
+    }
     const observer = new MutationObserver(onFoodBoardingMutate);
+    storedObserver = observer;
     const foodBoarding = document.getElementById("boarding");
     const observerConfig = {
         subtree: true,
@@ -323,14 +370,20 @@ const onTabUpdated = async (tabInfo) => {
     if (tabInfo.tab.url.includes("boarding")) {
 
         //On food date picker change
-        let foodDatePicker =
+        const foodDatePicker =
             document.querySelector(
                 "body > div.warp > div.stredni-panel > div.panel.panel-default.panel-filter > div > div.menu-select.panel-control.responsive-control > select");
         foodDatePicker.addEventListener("change", handleFoodList);
+
+        const foodDayPicker = 
+            document.querySelector("body > div.warp > div.stredni-panel > div.panel.panel-default.panel-filter > div > div.day-select.panel-control.responsive-control > select");
+        if(foodDayPicker != undefined) {
+            foodDayPicker.addEventListener("change", handleFoodList);
+        }
     }
 
     //#10 Fix
-    let rightPanel = document.querySelector("body > div.warp > div.pravy-panel");
+    const rightPanel = document.querySelector("body > div.warp > div.pravy-panel");
     rightPanel.remove();
 };
 
@@ -364,7 +417,7 @@ const establishDeveloperMode = async (value) => {
 }
 
 chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
-    logger.log(msg);
+    logger.log(msg, "On message");
     switch (msg.type) {
         case "LOAD":
 
