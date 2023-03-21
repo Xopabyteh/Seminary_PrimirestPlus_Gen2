@@ -8340,10 +8340,19 @@ const addImageToFood = async (foodRowElement, soupParts) => {
     }
 }
 
+const viewModeOptions = {
+    index: 0,
+    full: 1,
+    compact: 2
+}
+
 let storedObserver = undefined;
 const handleFoodList = async () => {
+    let viewMode = viewModeOptions.index;
     const fullDisplayOption = document.querySelector("body > div.warp > div.stredni-panel > div.panel.panel-default.panel-filter > div > div.menu-view-type-select.panel-control.responsive-control > select > option:nth-child(1)");
-    const viewMode = fullDisplayOption.getAttribute('selected') == 'selected' ? 'full' : 'compact'; 
+    if(fullDisplayOption != undefined) {
+        viewMode = fullDisplayOption.getAttribute('selected') == 'selected' ? viewModeOptions.full  : viewModeOptions.compact; 
+    }
 
     logger.log(`viewMode: ${viewMode}`, "handleFoodList");
     const disconnectObserver = () => {
@@ -8353,9 +8362,8 @@ const handleFoodList = async () => {
     }
     const onFoodBoardingMutate = async (mutationList, observer) => {
         logger.log(mutationList, "onFoodBoardingMutate()");
-        if(viewMode == 'compact') {
-            if (
-                mutationList.length === 6
+        if(viewMode == viewModeOptions.compact) {
+            if (mutationList.length === 6
                 && mutationList[0].removedNodes.length === 1
                 && mutationList[1].addedNodes.length === 1
                 ) {
@@ -8364,19 +8372,19 @@ const handleFoodList = async () => {
             else {
                 return;
             }
-        } else if(viewMode == 'full') {
+        } else if(viewMode == viewModeOptions.full) {
             if (
-                (
-                    mutationList.length === 10
-                ) ||
-                (
-                mutationList.length === 2
+                (mutationList.length === 10) ||
+                (mutationList.length === 2
                 && mutationList[0].removedNodes.length === 1
-                && mutationList[1].addedNodes.length === 1
-                )
+                && mutationList[1].addedNodes.length === 1)
                 ) {
                 disconnectObserver();
             } 
+        } else if(viewMode == viewModeOptions.index) {
+            if(mutationList.length >= 3) {
+                disconnectObserver();
+            }
         }
 
         logger.log('Ready to work with foodList', 'Observer')
@@ -8443,7 +8451,7 @@ const handleFoodList = async () => {
         const foodRowElements = document.querySelectorAll(".jidlo-mini tbody tr");
         let soupParts = undefined;
 
-        if(viewMode === 'full' || foodRowElements.length % 3 == 1) {
+        if(viewMode === viewModeOptions.full || viewMode === viewModeOptions.index || foodRowElements.length % 3 == 1) {
             //We're on index page
             const display = foodRowElements[0];
             const deleteButton = display.querySelector('.text-center');
