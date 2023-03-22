@@ -1,0 +1,138 @@
+$text_normal: 	#fff;
+$text_header: #7289da;
+$background_bright: #99aab5;
+$background_dark_alternate: #2F3437;
+$background_dark: #2c2f33;
+$background_darkest: #23272a;
+
+//https://coolors.co/ffffff-7289da-99aab5-636d74-2c2f33-23272a
+
+body, 
+.panel-main
+{
+    background-color: $background_darkest !important;
+}
+
+.panel,
+.btn,
+.menu ul.submenu,
+select option,
+.levy-panel,
+.datepicker
+{
+    background-color: $background_dark !important;
+}
+
+.nil
+{
+    background-color: $background_bright !important;
+}
+
+.welcome,
+a,
+option,
+.panel-control select,
+strong,
+b,
+i,
+span,
+.menu ul.submenu li button,
+label,
+tr td,
+dl
+{
+    color: $text_normal !important;
+}
+
+h1,
+h2,
+h2 *,
+h3,
+tr th,
+.zavod,
+.kdo,
+.ucet,
+.tiraz
+{
+    color: $text_header !important;
+}
+
+.fa {
+    & {
+        color: transparent !important;
+    }
+}
+
+.fa-shopping-cart,
+.fa-times,
+.fa-star,
+.fa-print,
+.fa-download
+{
+    &::before {
+        color:$text_header !important;
+    }
+    & {
+        color: transparent !important;
+    }
+}
+
+table tr
+{
+    border-bottom: solid 1px $background_dark !important;
+}
+
+table thead,
+select,
+.menu > ul > li
+{
+    border-bottom: solid 2px $background_bright !important;
+}
+
+.button,
+.btn-print2
+{
+    color: $text_header !important;
+    background-color: $background_dark !important;
+
+    border: solid 1px $background_darkest !important;
+    border-radius: 4px;
+}
+
+.menu > ul > li div.dropdown-icon {
+    background: none !important;
+}
+.panel-control select {
+    background: $background_dark;
+}
+
+.balance-table tbody tr:nth-child(2n) {
+    background-color: $background_dark_alternate;
+}
+
+.form-control {
+    background-color: $background_dark !important;
+    color: $text_normal !important;
+    border-bottom: solid 2px $background_bright !important;
+}
+
+.select-input input {
+    background-color: $background_darkest !important;
+    color: $text_normal !important;
+}
+
+.customcheck-container input:checked ~ .customcheck-checkmark {
+    background-color: $text_header !important;
+}
+
+/* Primirest+ content*/
+.food-image-control:hover {
+    background-color: rgba(255,255,255,0.4);
+    color: $text_normal;
+    border-bottom: solid 2px $background_bright !important;
+}
+
+.food-image-loading {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-top-color: $text_normal;
+}

@@ -263,10 +263,8 @@ const handleFoodList = async () => {
             }
         } else if(viewMode == viewModeOptions.full) {
             if (
-                (mutationList.length === 10) ||
-                (mutationList.length === 2
-                && mutationList[0].removedNodes.length === 1
-                && mutationList[1].addedNodes.length === 1)
+                    (mutationList.length === 10) ||
+                    (mutationList.length === 2 && mutationList[0].target.getAttribute('id') !== 'boarding')
                 ) {
                 disconnectObserver();
             } 
@@ -340,7 +338,7 @@ const handleFoodList = async () => {
         const foodRowElements = document.querySelectorAll(".jidlo-mini tbody tr");
         let soupParts = undefined;
 
-        if(viewMode === viewModeOptions.full || viewMode === viewModeOptions.index || foodRowElements.length % 3 == 1) {
+        if(foodRowElements.length % 3 == 1) {
             //We're on index page
             const display = foodRowElements[0];
             const deleteButton = display.querySelector('.text-center');
@@ -390,13 +388,26 @@ const handleFoodList = async () => {
     observer.observe(foodBoarding, observerConfig);
 }
 
+const getPageSections = (url) => {
+    const pageSections = 
+        url.substring(url.indexOf('.cz')+3)
+        .toLowerCase()
+        .split('/');
+    return pageSections ?? [];
+}
+
 //tabInfo = {tab, page:string}
 const onTabUpdated = async (tabInfo) => {
-    logger.log("Tab updated", 'onTabUpdated');
+    const url = tabInfo.tab.url;
+    let pageSections = getPageSections(url);
 
-    await handleFoodList();
-    //Food list
-    if (tabInfo.tab.url.includes("boarding")) {
+    logger.log(pageSections, 'Page sections');
+
+    if(pageSections.every(x => x === '') || pageSections.some(x=> x === 'boarding')) {
+        await handleFoodList();
+    }
+    
+    if (pageSections.some(x => x === 'boarding')) {
 
         //On food date picker change
         const foodDatePicker =
@@ -412,7 +423,7 @@ const onTabUpdated = async (tabInfo) => {
     }
 
     //#10 Fix
-    const rightPanel = document.querySelector("body > div.warp > div.pravy-panel");
+    const rightPanel = document.querySelector(".pravy-panel");
     rightPanel.remove();
 };
 
