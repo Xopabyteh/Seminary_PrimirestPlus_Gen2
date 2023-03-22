@@ -8515,7 +8515,13 @@ const onTabUpdated = async (tabInfo) => {
     logger.log(pageSections, 'Page sections');
 
     if(pageSections.every(x => x === '') || pageSections.some(x=> x === 'boarding')) {
-        await handleFoodList();
+        handleFoodList();
+
+        //#10 Fix
+        const rightPanel = document.querySelector(".pravy-panel");
+        if(rightPanel != undefined) {
+            rightPanel.remove();
+        }
     }
     
     if (pageSections.some(x => x === 'boarding')) {
@@ -8533,9 +8539,7 @@ const onTabUpdated = async (tabInfo) => {
         }
     }
 
-    //#10 Fix
-    const rightPanel = document.querySelector(".pravy-panel");
-    rightPanel.remove();
+
 };
 
 

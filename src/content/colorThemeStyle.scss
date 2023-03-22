@@ -1,16 +1,25 @@
-$text_normal: 	#fff;
-$text_header: #7289da;
-$background_bright: #99aab5;
-$background_dark_alternate: #2F3437;
-$background_dark: #2c2f33;
-$background_darkest: #23272a;
+// $text_normal: 	#fff;
+// $text_header: #7289da;
+// $background_bright: #99aab5;
+// $background_dark_alternate: #2F3437;
+// $background_dark: #2c2f33;
+// $background_darkest: #23272a;
+
+:root {
+    --text_normal: 	#fff;
+    --text_header: #7289da;
+    --background_bright: #99aab5;
+    --background_dark_alternate: #2F3437;
+    --background_dark: #2c2f33;
+    --background_darkest: #23272a;
+}
 
 //https://coolors.co/ffffff-7289da-99aab5-636d74-2c2f33-23272a
 
 body, 
 .panel-main
 {
-    background-color: $background_darkest !important;
+    background-color: var(--background_darkest) !important;
 }
 
 .panel,
@@ -20,12 +29,12 @@ select option,
 .levy-panel,
 .datepicker
 {
-    background-color: $background_dark !important;
+    background-color: var(--background_dark) !important;
 }
 
 .nil
 {
-    background-color: $background_bright !important;
+    background-color: var(--background_bright) !important;
 }
 
 .welcome,
@@ -41,7 +50,7 @@ label,
 tr td,
 dl
 {
-    color: $text_normal !important;
+    color: var(--text_normal) !important;
 }
 
 h1,
@@ -54,7 +63,7 @@ tr th,
 .ucet,
 .tiraz
 {
-    color: $text_header !important;
+    color: var(--text_header) !important;
 }
 
 .fa {
@@ -70,7 +79,7 @@ tr th,
 .fa-download
 {
     &::before {
-        color:$text_header !important;
+        color:var(--text_header) !important;
     }
     & {
         color: transparent !important;
@@ -79,23 +88,23 @@ tr th,
 
 table tr
 {
-    border-bottom: solid 1px $background_dark !important;
+    border-bottom: solid 1px var(--background_dark) !important;
 }
 
 table thead,
 select,
 .menu > ul > li
 {
-    border-bottom: solid 2px $background_bright !important;
+    border-bottom: solid 2px var(--background_bright) !important;
 }
 
 .button,
 .btn-print2
 {
-    color: $text_header !important;
-    background-color: $background_dark !important;
+    color: var(--text_header) !important;
+    background-color: var(--background_dark) !important;
 
-    border: solid 1px $background_darkest !important;
+    border: solid 1px var(--background_darkest) !important;
     border-radius: 4px;
 }
 
@@ -103,36 +112,36 @@ select,
     background: none !important;
 }
 .panel-control select {
-    background: $background_dark;
+    background: var(--background_dark);
 }
 
 .balance-table tbody tr:nth-child(2n) {
-    background-color: $background_dark_alternate;
+    background-color: var(--background_dark_alternate);
 }
 
 .form-control {
-    background-color: $background_dark !important;
-    color: $text_normal !important;
-    border-bottom: solid 2px $background_bright !important;
+    background-color: var(--background_dark) !important;
+    color: var(--text_normal) !important;
+    border-bottom: solid 2px var(--background_bright) !important;
 }
 
 .select-input input {
-    background-color: $background_darkest !important;
-    color: $text_normal !important;
+    background-color: var(--background_darkest) !important;
+    color: var(--text_normal) !important;
 }
 
 .customcheck-container input:checked ~ .customcheck-checkmark {
-    background-color: $text_header !important;
+    background-color: var(--text_header) !important;
 }
 
 /* Primirest+ content*/
 .food-image-control:hover {
     background-color: rgba(255,255,255,0.4);
-    color: $text_normal;
-    border-bottom: solid 2px $background_bright !important;
+    color: var(--text_normal);
+    border-bottom: solid 2px var(--background_bright) !important;
 }
 
 .food-image-loading {
     border: 4px solid rgba(0, 0, 0, 0.1);
-    border-top-color: $text_normal;
+    border-top-color: var(--text_normal);
 }
