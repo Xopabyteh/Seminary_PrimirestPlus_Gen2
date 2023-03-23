@@ -8511,10 +8511,9 @@ const getPageSections = (url) => {
 const onTabUpdated = async (tabInfo) => {
     const url = tabInfo.tab.url;
     let pageSections = getPageSections(url);
-
     logger.log(pageSections, 'Page sections');
 
-    if(pageSections.every(x => x === '') || pageSections.some(x=> x === 'boarding')) {
+    if(pageSections.every(x => x === '' || x === 'cs') || pageSections.some(x=> x === 'boarding')) {
         handleFoodList();
 
         //#10 Fix
@@ -8552,6 +8551,14 @@ let logger = {
 }
 
 const establishDeveloperMode = async (value) => {
+    if(value == undefined) {
+        value = await chrome.runtime.sendMessage({
+            type: 'GET_STORAGE_ITEM',
+            key: 'isDeveloper',
+            defaultValue: false
+        });
+    }
+
     logger.logAlways(`isDeveloper: ${value}`, "setDeveloperMode");
 
     if (value) {
@@ -8571,24 +8578,58 @@ const establishDeveloperMode = async (value) => {
     }
 }
 
-chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
+//This is burning trash, maybe i'll get to it later
+const changeColorTheme = async (darkMode) => {
+    if(darkMode == undefined) {
+        darkMode = await chrome.runtime.sendMessage({
+            type: 'GET_STORAGE_ITEM',
+            key: 'darkMode',
+            defaultValue: false
+        });
+    }
+
+    const root = document.querySelector(':root');
+
+    // '--text_normal:' 	            ,  '#fff   ';
+    // '--text_header:'                 ,  '#7289da';
+    // '--background_bright:'           ,  '#99aab5';
+    // '--background_dark_alternate:'   ,  '#2F3437';
+    // '--background_dark:'             ,  '#2c2f33';
+    // '--background_darkest:'          ,  '#23272a';
+    if(darkMode) {
+        root.style.setProperty('--text_normal' 	            ,  '#fff   ');
+        root.style.setProperty('--text_header'                 ,  '#7289da');
+        root.style.setProperty('--background_bright'           ,  '#99aab5');
+        root.style.setProperty('--background_dark_alternate'   ,  '#2F3437');
+        root.style.setProperty('--background_dark'             ,  '#2c2f33');
+        root.style.setProperty('--background_darkest'          ,  '#23272a');
+    } else {
+        root.style.setProperty('--text_normal' 	            ,  '#000   ');
+        root.style.setProperty('--text_header'                 ,  '#7871AA');
+        root.style.setProperty('--background_bright'           ,  '#774E24');
+        root.style.setProperty('--background_dark_alternate'   ,  '#AA7D48');
+        root.style.setProperty('--background_dark'             ,  '#DCAB6B');
+        root.style.setProperty('--background_darkest'          ,  '#E8F9FD');
+    }
+}
+
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     logger.log(msg, "On message");
-    switch (msg.type) {
-        case "LOAD":
+    if(msg.type == "LOAD") {
+        
+        changeColorTheme()
+            .then(() => establishDeveloperMode())
+            .then(() => onTabUpdated(msg));
+    } 
+    else if(msg.type == 'OPTION_CHANGED') {
+        const key = msg.key;
+        const value = msg.value;
 
-            //msg contains tabInfo
-            //Establish developer mode
-            await establishDeveloperMode(msg.isDeveloper);
-
-            //Then invoke onTabUpdated
-            await onTabUpdated(msg);
-            break;
-        case "TEST":
-            logger.log(msg.msg, "Test button");
-            break;
-        case "DEVELOPER_CHANGED":
-            await establishDeveloperMode(msg.isDeveloper);
-            break;
+        if(key == 'isDeveloper') {
+            establishDeveloperMode(value);
+        } else if(key == 'darkMode') {
+            changeColorTheme(value);
+        }
     }
 });
 

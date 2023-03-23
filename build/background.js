@@ -3,10 +3,10 @@ var __webpack_exports__ = {};
 /*!**************************************!*\
   !*** ./src/background/background.js ***!
   \**************************************/
-let scolarestTab = null;
+let scolarestTab = undefined;
 const storageKey_IsDeveloper = "isDeveloper";
 
-chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+const onTabUpdated = async (tabId, changeInfo, tab) => {
     if (!changeInfo.status)
         return;
     if (changeInfo.status != 'complete')
@@ -24,22 +24,17 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     //[2...] website page
     scolarestTab = tab;
 
-    let pageComponents = tab.url.split("/");
-    let page = pageComponents[pageComponents.length - 1];
-
-    let isDeveloper = await getDeveloperMode();
-    console.log(isDeveloper);
     //Send tab to tabId
     chrome.tabs.sendMessage(
         tabId,
         {
             type: "LOAD",
             tab: tab,
-            isDeveloper: isDeveloper,
-            page: page
         }
     );
-});
+}
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => onTabUpdated(tabId, changeInfo, tab));
 
 const googleSearchCredentials = {
     customSearchKey: 'AIzaSyA2R8PmMNUk_YezsELTBNsIU0jWss1-uwQ',
@@ -124,56 +119,59 @@ const searchForFoodPicture = async (foodName, startFrom, sizeIndex) => {
     return foodPictureSearch;
 }
 
-const toggleDeveloperMode = async () => {
-    const storageResult = await chrome.storage.local.get(storageKey_IsDeveloper)
-    const isDeveloper = !storageResult.isDeveloper;
-    chrome.storage.local.set({ isDeveloper : isDeveloper });
-    
-    chrome.runtime.sendMessage(
-        {
-            type: "DEVELOPER_CHANGED",
-            isDeveloper: isDeveloper
-        }
-    );
-
-    if(scolarestTab !== null) {
-        chrome.tabs.sendMessage(
-            scolarestTab.id,
-            {
-                type: "DEVELOPER_CHANGED",
-                isDeveloper: isDeveloper
-            }
-        );
+const getStorageItem = async (key = '', defaultValue = '') => {
+    const result = (await chrome.storage.local.get(key))[key];
+    if(result == undefined) {
+        setStorageItem(key, defaultValue);
+        return defaultValue;
     }
+    return result;
 }
-const getDeveloperMode = async () => {
-    const storageResult = await chrome.storage.local.get(storageKey_IsDeveloper);
-    if(storageResult == undefined || storageResult.isDeveloper == undefined) {
-        chrome.storage.local.set({ isDeveloper : false });
-        return false;
-    }
-    return storageResult.isDeveloper;
+
+const setStorageItem = async (key = '', value = '') => {
+    chrome.storage.local.set({ [key] : value });
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    // console.log(msg);
-    
-    if(msg.type == "TOGGLE_DEVELOPER") {
-        toggleDeveloperMode();
-        return false;
+    if(msg.type == 'GET_STORAGE_ITEM') {
+        const key = msg.key;
+        const defaultValue = msg.defaultValue;
+        getStorageItem(key, defaultValue).then(res => sendResponse(res));
+
+        return true;
     }
-    if(msg.type == "GET_DEVELOPER") {
-        getDeveloperMode().then(isDeveloper=> {
-            chrome.runtime.sendMessage(
+
+    else if(msg.type == 'SET_STORAGE_ITEM') {
+        const key = msg.key;
+        const value = msg.value;
+        const globalNotify = msg.globalNotify ?? false;
+        
+        setStorageItem(key, value);
+        
+        if(globalNotify) {
+            chrome.runtime.sendMessage({
+                type: 'OPTION_CHANGED',
+                key: key,
+                value: value
+            })
+
+            if(scolarestTab == undefined || scolarestTab.id == undefined || scolarestTab.active === false)
+                return false;
+        
+            chrome.tabs.sendMessage(
+                scolarestTab.id,
                 {
-                    type: "DEVELOPER_CHANGED",
-                    isDeveloper: isDeveloper
+                    type: 'OPTION_CHANGED',
+                    key: key,
+                    value: value
                 }
             );
-        });
+        }
+
         return false;
     }
-    if(msg.type == "GET_IMAGE") {
+
+    else if(msg.type == "GET_IMAGE") {
         console.log(msg);
         const query = msg.query;
         const index = msg.index;

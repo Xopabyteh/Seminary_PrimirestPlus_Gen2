@@ -3,8 +3,7 @@ var __webpack_exports__ = {};
 /*!****************************!*\
   !*** ./src/popup/popup.js ***!
   \****************************/
-const sendMessageToScolarestTab = async (msg) =>
-{
+const sendMessageToScolarestTab = async (msg) => {
     chrome.tabs.query(
         {
             active: true,
@@ -24,43 +23,58 @@ const sendMessageToScolarestTab = async (msg) =>
     );
 }
 
-const onTestButton = () => {
-    sendMessageToScolarestTab({
-        type: "TEST",
-        msg: "Hello content"
+const onDeveloperModeButton = async () => {
+    await chrome.runtime.sendMessage({
+        type: 'SET_STORAGE_ITEM',
+        key: 'isDeveloper',
+        value: !isDeveloper,
+        globalNotify: true
     });
-}
-const onDeveloperModeButton = () => {
-    chrome.runtime.sendMessage({
-        type: "TOGGLE_DEVELOPER"
-    });
+    isDeveloper = !isDeveloper;
+    buttonDeveloperMode.classList.toggle('active');
 }
 
-
+const onDarkModeButton = async () => {
+    await chrome.runtime.sendMessage({
+        type: 'SET_STORAGE_ITEM',
+        key: 'darkMode',
+        value: !darkMode,
+        globalNotify: true
+    });
+    darkMode = !darkMode;
+    buttonDarkMode.classList.toggle('active');
+}
 
 var buttonDeveloperMode;
+var buttonDarkMode;
+var darkMode = false;
+var isDeveloper = false;
+
 const init = async () => {
-    const buttonTest = document.getElementById("button-test");
-    buttonTest.addEventListener("click", onTestButton);
-
-
-    chrome.runtime.sendMessage({
-        type: "GET_DEVELOPER"
+    isDeveloper = await chrome.runtime.sendMessage({
+        type: 'GET_STORAGE_ITEM',
+        key: 'isDeveloper',
+        defaultValue: false,
     });
-    
     buttonDeveloperMode = document.getElementById("button-developerMode");
     buttonDeveloperMode.addEventListener("click",onDeveloperModeButton);
+    buttonDeveloperMode.classList.toggle('active', isDeveloper);
+
+    darkMode = await chrome.runtime.sendMessage({
+        type: 'GET_STORAGE_ITEM',
+        key: 'darkMode',
+        defaultValue: false,
+    });
+    buttonDarkMode = document.getElementById("button-darkMode");
+    buttonDarkMode.addEventListener("click", onDarkModeButton);
+    buttonDarkMode.classList.toggle('active', darkMode);
+
+
+
 }
 
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    // console.log(msg);
-    switch(msg.type) {
-        //Activate the developer slider to match storage
-        case "DEVELOPER_CHANGED": 
-            buttonDeveloperMode.classList.toggle('active', msg.isDeveloper);
-            break;
-    }
-});
+// chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+// });
 
 document.addEventListener("DOMContentLoaded", init);
 

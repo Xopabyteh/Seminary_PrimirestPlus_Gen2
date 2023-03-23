@@ -86,6 +86,10 @@ tr th,
     }
 }
 
+a.disable .fa {
+    filter: brightness(0.5);
+}
+
 table tr
 {
     border-bottom: solid 1px var(--background_dark) !important;
