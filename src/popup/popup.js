@@ -23,7 +23,7 @@ const onDeveloperModeButton = async () => {
         type: 'SET_STORAGE_ITEM',
         key: 'isDeveloper',
         value: !isDeveloper,
-        globalNotify: true
+        notifyTab: true
     });
     isDeveloper = !isDeveloper;
     buttonDeveloperMode.classList.toggle('active');
@@ -34,7 +34,7 @@ const onDarkModeButton = async () => {
         type: 'SET_STORAGE_ITEM',
         key: 'darkMode',
         value: !darkMode,
-        globalNotify: true
+        notifyTab: true
     });
     darkMode = !darkMode;
     buttonDarkMode.classList.toggle('active');
