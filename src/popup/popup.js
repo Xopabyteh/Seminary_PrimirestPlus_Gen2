@@ -29,6 +29,7 @@ const onDeveloperModeButton = async () => {
     buttonDeveloperMode.classList.toggle('active');
 }
 
+import { changeColorTheme } from "../globalServices/colorThemeService";
 const onDarkModeButton = async () => {
     await chrome.runtime.sendMessage({
         type: 'SET_STORAGE_ITEM',
@@ -37,6 +38,7 @@ const onDarkModeButton = async () => {
         notifyTab: true
     });
     darkMode = !darkMode;
+    changeColorTheme(darkMode);
     buttonDarkMode.classList.toggle('active');
 }
 
@@ -63,9 +65,7 @@ const init = async () => {
     buttonDarkMode = document.getElementById("button-darkMode");
     buttonDarkMode.addEventListener("click", onDarkModeButton);
     buttonDarkMode.classList.toggle('active', darkMode);
-
-
-
+    changeColorTheme(darkMode);
 }
 
 // chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {

@@ -1,48 +1,21 @@
-const getCommonSubstring = (str1, str2) => {
-    let commonSubstring = '';
-    const len1 = str1.length;
-    const len2 = str2.length;
-    for (let i = 0; i < len1; i++) {
-        for (let j = i + 1; j <= len1; j++) {
-            const subString = str1.substring(i, j);
-            if (len2 >= subString.length && str2.includes(subString)) {
-                if (subString.length > commonSubstring.length) {
-                    commonSubstring = subString;
+const getSoupParts = (foodRowElements) => {
+    const getCommonSubstring = (str1, str2) => {
+        let commonSubstring = '';
+        const len1 = str1.length;
+        const len2 = str2.length;
+        for (let i = 0; i < len1; i++) {
+            for (let j = i + 1; j <= len1; j++) {
+                const subString = str1.substring(i, j);
+                if (len2 >= subString.length && str2.includes(subString)) {
+                    if (subString.length > commonSubstring.length) {
+                        commonSubstring = subString;
+                    }
                 }
             }
         }
+        return commonSubstring;
     }
-    return commonSubstring;
-}
-
-const getFoodObject = (fullFoodName, soupParts) => {
-    let foodName = fullFoodName;
-    let soupName = undefined;
-
-    //Remove the soup part from the name
-    for (let soupPart of soupParts) {
-        if (fullFoodName.indexOf(soupPart) !== -1) {
-            soupName = soupPart;
-            foodName = foodName.replace(soupPart, "");
-            break;
-        }
-    }
-
-    //Delete parentheses -> (x...z)
-    let foodDetail = foodName.match(/\([^)]*\)/g);
-    if(foodDetail == undefined || foodDetail[0] == undefined) {
-        foodDetail = ''; 
-    } else {
-        foodDetail = foodDetail[0];
-        foodName = foodName.replace(foodDetail, '');
-    }
-
-    foodName = foodName.trim();
-
-    return {foodName: foodName, soupName: soupName, foodDetail: foodDetail};
-}
-
-const getSoupParts = (foodRowElements) => {
+    
     const fullFoodNames = [];
     //Full soup name including the commas and whitespaces
     const soupParts = [];
@@ -69,172 +42,65 @@ const getSoupParts = (foodRowElements) => {
     return soupParts;
 }
 
-const googleSearchForFoodPicture = async (foodName, index, sizeIndex) => {
-    const foodPictureSearch = await chrome.runtime.sendMessage(        {
-        type: "GET_IMAGE",
-        query: foodName,
-        index: index,
-        sizeIndex: sizeIndex
-    })
-
-    return foodPictureSearch;
+const highlightFoodName = async (foodObject) => {
+    const highlightedHTML = `${foodObject.soupName} <b>${foodObject.foodName}</b> ${foodObject.foodDetail}`;
+    foodObject.foodNameElement.innerHTML = highlightedHTML;
 }
 
-
-import { initializeApp } from "firebase/app";
-import { getStorage, ref, getDownloadURL, listAll  } from "firebase/storage";
-
-const firebaseConfig = {
-    apiKey: "AIzaSyDuz41HpiuRIhAud4-8342byRxCiCxK4Nk",
-    authDomain: "seminary-primirest-plus-fb.firebaseapp.com",
-    projectId: "seminary-primirest-plus-fb",
-    storageBucket: "seminary-primirest-plus-fb.appspot.com",
-    messagingSenderId: "525183147276",
-    appId: "1:525183147276:web:d5700e78ec1033cabb7d29",
-    measurementId: "G-VJZEBNY05B"
-};
-
-const firebaseApp = initializeApp(firebaseConfig);
-
-const firebaseStorage = getStorage(firebaseApp);
-let storedFoodItems = undefined;
-
-import { compareTwoStrings } from 'string-similarity'; 
-
-//Caches all image refs from database and uses it as a lookup table for loading existing images
-//Food match is threshold based
-const tryGetExistingImage = async (foodName) => {
-    //If there is a string, that matches a foodname in atleast n%, use it 
-    const storedFoodItem = await storedFoodItems.find(e => compareTwoStrings(e.query, foodName) > 0.8);
-    if(storedFoodItem == undefined || storedFoodItem.ref == undefined) {
-        return undefined;
+const refactorPriceElements = () => {
+    let newPriceElements = document.querySelectorAll(".jidlo-mini thead tr th:nth-child(3)");
+    let oldPriceElement = document.querySelector(".minWidth95x.text-right strong");
+    for (let newPriceElement of newPriceElements) {
+        newPriceElement.innerHTML = `${newPriceElement.innerHTML}: ${oldPriceElement.innerHTML},-`;
     }
-    
-    try {
-        const url = await getDownloadURL(storedFoodItem.ref)
-        const response = await fetch(url);
-        return response.url;
-    } catch (error) {
-        console.error(error);
-    }
-    return undefined;
 }
 
-//Need to store images, so that they can be deleted, as the single day picking doesn't remove them automatically
-const existingImageHolders = [];
+const refactorCalorieElements = () => {
+    let calorieCircleParentElements = document.querySelectorAll(".jidlo-mini tbody tr td:has(img)");
 
-//Create image holder
-const createFoodImageObject = (foodRowElement, foodName) => {
-    const foodImagesHolder = document.createElement("div");
-    foodImagesHolder.className = 'food-images-holder';
-    foodRowElement.appendChild(foodImagesHolder);
-    
-    const foodImageElement = document.createElement("img");
-    foodImageElement.className = 'food-image';
-    foodImageElement.setAttribute("alt", foodName);
+    // logger.log(calorieCircleParentElements, "#9a");
 
-    foodImagesHolder.appendChild(foodImageElement);
-    existingImageHolders.push(foodImagesHolder);
-
-    return {foodImagesHolder: foodImagesHolder, foodImageElement: foodImageElement};
-}
-
-const indicateNonexistentImage = (foodRowElement) => {
-    const noDataInfo = document.createElement("div");
-    noDataInfo.className = 'no-data-info';
-    noDataInfo.innerHTML = '<b>Kuchařovo tajemství</b><i>Primirest+ ani Google jídlo nikdy neviděli.</i>'
-    foodRowElement.appendChild(noDataInfo);
-    
-    existingImageHolders.push(noDataInfo);
-} 
-
-//Returns false if no image exists, true if everything went successfully
-const addGoogleImageWithControl = async (foodRowElement, foodName) => {
-    let foodPictureSearch = await googleSearchForFoodPicture(foodName, 1, 0);
-    if(foodPictureSearch.foodPicture === undefined || foodPictureSearch.foodPicture.link === undefined) {
-        logger.log('No image avaliable', '#11');
-        return false;
-    }
-
-    const imageObject = createFoodImageObject(foodRowElement, foodName);
-
-    let pictureUrl = foodPictureSearch.foodPicture.link;
-    imageObject.foodImageElement.setAttribute("src", pictureUrl);
-
-    //Create food image control
-    const btnSearchForNew = document.createElement('button');
-    btnSearchForNew.className='food-image-control';
-    btnSearchForNew.innerHTML = 'F5';
-    btnSearchForNew.onclick = async () => {
-        btnSearchForNew.disabled = true;
-        imageLoading.classList.toggle('active', true);
-
-        //New search
-        foodPictureSearch = await googleSearchForFoodPicture(foodName, foodPictureSearch.searchIndex, foodPictureSearch.sizeIndex);
-
-        //If no other image was found, loop around to the start
-        if(foodPictureSearch.foodPicture === undefined) {
-            foodPictureSearch = await googleSearchForFoodPicture(foodName, 1, 0);
+    for (let calorieCircleParent of calorieCircleParentElements) {
+        let calorieCircleElement = calorieCircleParent.querySelector(":scope > img");
+        if (!calorieCircleElement) {
+            continue;
         }
-        pictureUrl = foodPictureSearch.foodPicture.link;
-        
-        //Update html
-        imageObject.foodImageElement.setAttribute("src", pictureUrl);
-    }
-    //Enable searching only after full image load
-    imageObject.foodImageElement.onload = () => {
-        imageLoading.classList.toggle('active', false);
-        btnSearchForNew.disabled = false;
-    }
 
-    const imageLoading = document.createElement('div');
-    imageLoading.className = 'food-image-loading'
+        //logger.log(calorieCircleElement, "#9b");    
 
-    //Add controls and image
-    imageObject.foodImagesHolder.appendChild(imageLoading);
-    imageObject.foodImagesHolder.appendChild(btnSearchForNew);
-    return true;
-}
+        //Determine calorie income based on color
+        const calorieObj = {
+            txt: "",
+            elementType: ""
+        };
+        let calorieSrc = calorieCircleElement.src;
 
-//Also adds text highlighting
-const addImageToFood = async (foodRowElement, soupParts) => {
-    if (!foodRowElement) {
-        return;
-    }
+        //logger.log(calorieSrc, "#9c");
 
-    //Get food name
-    const foodNameElement = foodRowElement.querySelector("td:nth-child(4) a");
-    let foodObject = getFoodObject(foodNameElement.innerHTML, soupParts);
-    const foodName = foodObject.foodName;
-    const soupName = foodObject.soupName;
-    const foodDetail = foodObject.foodDetail;
-
-    //Add food highlighting
-    const highlightedHTML = `${soupName} <b>${foodName}</b> ${foodDetail}`;
-    foodNameElement.innerHTML = highlightedHTML;
-    logger.log(foodName, "#11 Names");
-
-    const existingImage = await tryGetExistingImage(foodName);
-    if(existingImage !== undefined) {
-        //Use existing image
-        const imageObject = createFoodImageObject(foodRowElement, foodName);
-        imageObject.foodImageElement.setAttribute('src', existingImage);
-    } else {
-        //Use google image
-        const imageExists = await addGoogleImageWithControl(foodRowElement, foodName);
-        if(!imageExists) {
-            //No image exists
-            indicateNonexistentImage(foodRowElement);
+        if (calorieSrc.includes("GREEN")) {
+            calorieObj.txt = "Low calories";
+            calorieObj.elementType = "i";
+        } else if (calorieSrc.includes("YELLOW")) {
+            calorieObj.txt = "Medium calories";
+            calorieObj.elementType = "span";
+        } else if (calorieSrc.includes("RED")) {
+            calorieObj.txt = "High calories";
+            calorieObj.elementType = "strong";
         }
+
+        //Create new element and remove circle
+        let newCalorieElement = document.createElement(calorieObj.elementType);
+        newCalorieElement.innerHTML = calorieObj.txt;
+        calorieCircleParent.replaceChild(newCalorieElement, calorieCircleElement);
     }
 }
 
+import { addImageToFood, loadStoredImages, removeExistingImageHolders } from './imageService';
 const viewModeOptions = {
     index: 0,
     full: 1,
     compact: 2
 }
-
 let storedObserver = undefined;
 const handleFoodList = async () => {
     let viewMode = viewModeOptions.index;
@@ -251,6 +117,8 @@ const handleFoodList = async () => {
     }
     const onFoodBoardingMutate = async (mutationList, observer) => {
         logger.log(mutationList, "onFoodBoardingMutate()");
+
+        //Validate, wether we should really update the food table
         if(viewMode == viewModeOptions.compact) {
             if (mutationList.length === 6
                 && mutationList[0].removedNodes.length === 1
@@ -275,64 +143,14 @@ const handleFoodList = async () => {
         }
 
         logger.log('Ready to work with foodList', 'Observer')
-        //Remove existing images
-        while(true) {
-            const holder = existingImageHolders.pop();
-            if(holder == undefined) {
-                break;
-            }
-            holder.remove();
-        }
+        
+        removeExistingImageHolders();
 
         //#8
-        //NewPrice query = .jidlo-mini thead tr th:nth-child(3)
-        //OldPrice query = .minWidth95x.text-right strong
-        let newPriceElements = document.querySelectorAll(".jidlo-mini thead tr th:nth-child(3)");
-        let oldPriceElement = document.querySelector(".minWidth95x.text-right strong");
-        for (let newPriceElement of newPriceElements) {
-            newPriceElement.innerHTML = `${newPriceElement.innerHTML}: ${oldPriceElement.innerHTML},-`;
-        }
-        // logger.log(newPriceElements, "#8");
-        // logger.log(oldPriceElement, "#8");
+        refactorPriceElements();
 
         //#9    
-        let calorieCircleParentElements = document.querySelectorAll(".jidlo-mini tbody tr td:has(img)");
-
-        // logger.log(calorieCircleParentElements, "#9a");
-
-        for (let calorieCircleParent of calorieCircleParentElements) {
-            let calorieCircleElement = calorieCircleParent.querySelector(":scope > img");
-            if (!calorieCircleElement) {
-                continue;
-            }
-
-            //logger.log(calorieCircleElement, "#9b");    
-
-            //Determine calorie income based on color
-            const calorieObj = {
-                txt: "",
-                elementType: ""
-            };
-            let calorieSrc = calorieCircleElement.src;
-
-            //logger.log(calorieSrc, "#9c");
-
-            if (calorieSrc.includes("GREEN")) {
-                calorieObj.txt = "Low calories";
-                calorieObj.elementType = "i";
-            } else if (calorieSrc.includes("YELLOW")) {
-                calorieObj.txt = "Medium calories";
-                calorieObj.elementType = "span";
-            } else if (calorieSrc.includes("RED")) {
-                calorieObj.txt = "High calories";
-                calorieObj.elementType = "strong";
-            }
-
-            //Create new element and remove circle
-            let newCalorieElement = document.createElement(calorieObj.elementType);
-            newCalorieElement.innerHTML = calorieObj.txt;
-            calorieCircleParent.replaceChild(newCalorieElement, calorieCircleElement);
-        }
+        refactorCalorieElements();
 
         //#11 - Add images to food
         const foodRowElements = document.querySelectorAll(".jidlo-mini tbody tr");
@@ -354,24 +172,42 @@ const handleFoodList = async () => {
         logger.log(soupParts, "#11 Soup parts");
 
         //Load stored images
-        if(storedFoodItems == undefined) {
-            storedFoodItems = [];
-            const res = await listAll(ref(firebaseStorage))
-            const refs = res.items;
-            
-            for (const ref of refs) {
-                const name = ref.name;
-                const fileTypeIndex = name.lastIndexOf(".");
-                let query = name.substring(0, fileTypeIndex); // String without file type: "hello.png" => "hello"
-                storedFoodItems.push({ref: ref, query: query});
-            }
-            
-            logger.log(storedFoodItems, 'Init storedFoodItems')
-        }
+        await loadStoredImages();
+
+        const getFoodObject = (foodNameElement, soupParts) => {
+            let foodName = foodNameElement.innerHTML;
+            let soupName = undefined;
         
+            //Remove the soup part from the name
+            for (let soupPart of soupParts) {
+                if (foodName.indexOf(soupPart) !== -1) {
+                    soupName = soupPart;
+                    foodName = foodName.replace(soupPart, "");
+                    break;
+                }   
+            }
+        
+            //Delete parentheses -> (x...z)
+            let foodDetail = foodName.match(/\([^)]*\)/g);
+            if(foodDetail == undefined || foodDetail[0] == undefined) {
+                foodDetail = ''; 
+            } else {
+                foodDetail = foodDetail[0];
+                foodName = foodName.replace(foodDetail, '');
+            }
+        
+            foodName = foodName.trim();
+        
+            return {foodName: foodName, soupName: soupName, foodDetail: foodDetail, foodNameElement: foodNameElement};
+        }
+
         //Add images to food
         for (const foodRowElement of foodRowElements) {
-            addImageToFood(foodRowElement, soupParts);
+            const foodNameElement = foodRowElement.querySelector("td:nth-child(4) a");
+            let foodObject = getFoodObject(foodNameElement, soupParts);
+
+            highlightFoodName(foodObject);
+            addImageToFood(foodRowElement, foodObject);
         }
     };
 
@@ -388,16 +224,15 @@ const handleFoodList = async () => {
     observer.observe(foodBoarding, observerConfig);
 }
 
-const getPageSections = (url) => {
-    const pageSections = 
-        url.substring(url.indexOf('.cz')+3)
-        .toLowerCase()
-        .split('/');
-    return pageSections ?? [];
-}
-
 //tabInfo = {tab, page:string}
 const onTabUpdated = async (tabInfo) => {
+    const getPageSections = (url) => {
+        const pageSections = 
+            url.substring(url.indexOf('.cz')+3)
+            .toLowerCase()
+            .split('/');
+        return pageSections ?? [];
+    }    
     const url = tabInfo.tab.url;
     let pageSections = getPageSections(url);
     logger.log(pageSections, 'Page sections');
@@ -427,7 +262,10 @@ const onTabUpdated = async (tabInfo) => {
         }
     }
 
-
+    const logo = document.querySelector('.logo');
+    if(logo != undefined) {
+        logo.style.filter = 'invert(var(--dark_mode))';
+    }
 };
 
 
@@ -467,41 +305,7 @@ const establishDeveloperMode = async (value) => {
     }
 }
 
-//This is burning trash, maybe i'll get to it later
-const changeColorTheme = async (darkMode) => {
-    if(darkMode == undefined) {
-        darkMode = await chrome.runtime.sendMessage({
-            type: 'GET_STORAGE_ITEM',
-            key: 'darkMode',
-            defaultValue: false
-        });
-    }
-
-    const root = document.querySelector(':root');
-
-    // '--text_normal:' 	            ,  '#fff   ';
-    // '--text_header:'                 ,  '#7289da';
-    // '--background_bright:'           ,  '#99aab5';
-    // '--background_dark_alternate:'   ,  '#2F3437';
-    // '--background_dark:'             ,  '#2c2f33';
-    // '--background_darkest:'          ,  '#23272a';
-    if(darkMode) {
-        root.style.setProperty('--text_normal' 	            ,  '#fff   ');
-        root.style.setProperty('--text_header'                 ,  '#7289da');
-        root.style.setProperty('--background_bright'           ,  '#99aab5');
-        root.style.setProperty('--background_dark_alternate'   ,  '#2F3437');
-        root.style.setProperty('--background_dark'             ,  '#2c2f33');
-        root.style.setProperty('--background_darkest'          ,  '#23272a');
-    } else {
-        root.style.setProperty('--text_normal' 	            ,  '#000   ');
-        root.style.setProperty('--text_header'                 ,  '#7871AA');
-        root.style.setProperty('--background_bright'           ,  '#774E24');
-        root.style.setProperty('--background_dark_alternate'   ,  '#AA7D48');
-        root.style.setProperty('--background_dark'             ,  '#DCAB6B');
-        root.style.setProperty('--background_darkest'          ,  '#E8F9FD');
-    }
-}
-
+import { changeColorTheme } from '../globalServices/colorThemeService';
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     logger.log(msg, "On message");
     if(msg.type == "LOAD") {

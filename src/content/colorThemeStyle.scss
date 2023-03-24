@@ -12,6 +12,8 @@
     --background_dark_alternate: #2F3437;
     --background_dark: #2c2f33;
     --background_darkest: #23272a;
+    //1 = true
+    --dark_mode: 1;
 }
 
 //https://coolors.co/ffffff-7289da-99aab5-636d74-2c2f33-23272a
@@ -137,7 +139,7 @@ select,
 .customcheck-container input:checked ~ .customcheck-checkmark {
     background-color: var(--text_header) !important;
 }
-
+  
 /* Primirest+ content*/
 .food-image-control:hover {
     background-color: rgba(255,255,255,0.4);
