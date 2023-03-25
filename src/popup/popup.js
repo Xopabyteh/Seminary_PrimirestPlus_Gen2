@@ -42,16 +42,46 @@ const onDarkModeButton = async () => {
     buttonDarkMode.classList.toggle('active');
 }
 
-const onLoginButton = async () => {
-    chrome.runtime.sendMessage({
-        type: 'LOGIN'
-    })
+import { signInWithGoogle, getProfilePicture, clearAuthToken } from '../globalServices/googleAuthService';
+var authToken;
+const login = async (interactive = false) => {
+    const token = await signInWithGoogle(interactive);
+    await addSignoutControl();
+    authToken = token;
+}
+
+const signOut = async () => {
+    if(authToken == undefined)
+        return;
+    
+    await clearAuthToken(authToken);
+    await addLoginControl();
+}
+
+const addLoginControl = async () => {
+    const loginControlHTML = await (await fetch('./loginControl.html')).text();
+    loginFormHolder.innerHTML = loginControlHTML;
+
+    const loginButton = loginFormHolder.querySelector('#login-button');
+    loginButton.addEventListener('click', async () => login(true));
+}
+
+const addSignoutControl = async () => {
+    let signoutControlHTML = await (await fetch('./signOutControl.html')).text();
+    const profilePicture = await getProfilePicture(authToken);
+    signoutControlHTML = signoutControlHTML.replace('__PROFILE_PICTURE__', profilePicture);
+
+    loginFormHolder.innerHTML = signoutControlHTML;
+
+    const signOutButton = loginFormHolder.querySelector('#signOut-button');
+    signOutButton.addEventListener('click', signOut);
 }
 
 var buttonDeveloperMode;
 var buttonDarkMode;
 var darkMode = false;
 var isDeveloper = false;
+var loginFormHolder;
 const init = async () => {
     isDeveloper = await chrome.runtime.sendMessage({
         type: 'GET_STORAGE_ITEM',
@@ -72,12 +102,16 @@ const init = async () => {
     buttonDarkMode.classList.toggle('active', darkMode);
     changeColorTheme(darkMode);
 
-    const loginButton = document.getElementById('login-button');
-    loginButton.addEventListener('click', onLoginButton);
+    //Either display loginDisplay, or add a login button
+    loginFormHolder = document.getElementById('login-form-holder');
+    await login(false); //Set authToken
+    if(authToken != undefined) {
+        await addSignoutControl()
+    } else {
+        await addLoginControl();
+    }
+    
 }
-
-// chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-// });
 
 document.addEventListener("DOMContentLoaded", init);
 

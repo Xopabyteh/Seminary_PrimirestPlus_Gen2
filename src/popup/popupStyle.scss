@@ -66,3 +66,28 @@ body {
 .slider-container.active .slider-button {
   transform: translateX(20px);
 }
+
+a.actionButton {
+  & {
+    display: inline-block;
+    position: relative;
+    height: 20px;
+    color: var(--text_normal);
+  }
+  &:active {
+    color: var(--background_bright);
+  }
+}
+
+#login-form-holder {
+  & {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  #profile-picture {
+    width: 32px;
+    height: 32px;
+    clip-path: circle();
+  }
+}
