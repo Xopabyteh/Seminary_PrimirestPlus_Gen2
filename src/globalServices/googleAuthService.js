@@ -14,6 +14,7 @@ const getProfilePicture = async (token) => {
 }
 
 var _authToken = undefined;
+//Uses caching
 const signInWithGoogle = async (interactive = false) => {
     if(_authToken != undefined)
       return _authToken;
@@ -30,6 +31,7 @@ const signInWithGoogle = async (interactive = false) => {
 
 const clearAuthToken = async (token = '') => {
   await chrome.identity.removeCachedAuthToken({token: token});
+  _authToken = undefined;
 }
 
 export {

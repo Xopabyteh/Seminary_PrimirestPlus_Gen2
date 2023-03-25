@@ -77,6 +77,10 @@ const addSignoutControl = async () => {
     signOutButton.addEventListener('click', signOut);
 }
 
+const onTestButton = async () => {
+    
+}
+
 var buttonDeveloperMode;
 var buttonDarkMode;
 var darkMode = false;
@@ -111,6 +115,8 @@ const init = async () => {
         await addLoginControl();
     }
     
+    const testButton = document.getElementById('test-button');
+    testButton.addEventListener('click', onTestButton);
 }
 
 document.addEventListener("DOMContentLoaded", init);
