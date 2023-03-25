@@ -69,6 +69,14 @@ const setStorageItem = async (key = '', value = '') => {
     chrome.storage.local.set({ [key] : value });
 }
 
+import { testFirebaseDB } from '../globalServices/firebaseService';
+const testDb = async (authToken) => {
+    if(authToken == undefined) {
+        return;
+    }
+    await testFirebaseDB(authToken);
+}
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     const notifyTabOptionChange = async (key, value) => {
             const scolarestTab = await getScolarestTab();
@@ -115,6 +123,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         searchForFoodPicture(query, index, sizeIndex).then(foodPictureSearch => sendResponse(foodPictureSearch));
         return true;
     } 
+
+    else if(msg.type == 'TEST_DB') {
+        const authToken = msg.authToken;
+        testDb(authToken);
+    }
 
     if (chrome.runtime.lastError) {
         console.error(chrome.runtime.lastError);

@@ -78,7 +78,10 @@ const addSignoutControl = async () => {
 }
 
 const onTestButton = async () => {
-    
+    chrome.runtime.sendMessage({
+        type: 'TEST_DB',
+        authToken: authToken
+    });
 }
 
 var buttonDeveloperMode;

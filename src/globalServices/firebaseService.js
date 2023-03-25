@@ -1,11 +1,12 @@
 import { initializeApp } from "firebase/app";
 import { getStorage, ref as storage_ref, getDownloadURL, listAll as storage_listAll } from "firebase/storage";
-import { } from 'firebase/database';
-import { } from 'firebase/auth';
+import { getDatabase, ref as db_ref, set as db_set } from 'firebase/database';
+import { getAuth, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
 
 const firebaseConfig = {
     apiKey: "AIzaSyDuz41HpiuRIhAud4-8342byRxCiCxK4Nk",
     authDomain: "seminary-primirest-plus-fb.firebaseapp.com",
+    databaseURL: "https://seminary-primirest-plus-fb-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "seminary-primirest-plus-fb",
     storageBucket: "seminary-primirest-plus-fb.appspot.com",
     messagingSenderId: "525183147276",
@@ -37,11 +38,28 @@ const loadStoredImages = async () => {
     return storedFoodItems;
 }
 
+const db = getDatabase(firebaseApp);
 const testFirebaseDB = async (authToken) => {
-    firebaseApp.datab
+    try {
+        const credential = GoogleAuthProvider.credential(null, authToken);
+        const userCredential = await signInWithCredential(getAuth(firebaseApp), credential);
+        const user = userCredential.user;
+        console.log(userCredential);
+    
+        // Write a rating to the database
+        const food = 'pizza';
+        const rating = 4;
+        const dbKeyRef = db_ref(db, 'FoodRatings/' + user.uid + '/' + food);
+        console.log(dbKeyRef);
+        await db_set(dbKeyRef, rating);
+        console.log('Rating saved to database');
+      } catch (error) {
+        console.error('Error:', error);
+      }
 }
 
 export {
     loadStoredImages,
     getDownloadURL,
+    testFirebaseDB
 }
