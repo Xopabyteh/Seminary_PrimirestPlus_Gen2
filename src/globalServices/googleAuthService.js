@@ -20,9 +20,9 @@ const signInWithGoogle = async (interactive = false) => {
       return _authToken;
 
     try {
-      const authToken = await chrome.identity.getAuthToken({ 'interactive': interactive });
-      _authToken = authToken;
-      return authToken.token;
+      const fullAuthToken = await chrome.identity.getAuthToken({ 'interactive': interactive });
+      _authToken = fullAuthToken.token;
+      return _authToken;
     }
     catch {
       return undefined;

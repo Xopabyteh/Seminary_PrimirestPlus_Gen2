@@ -1,5 +1,7 @@
 import { initializeApp } from "firebase/app";
-import { getStorage, ref, getDownloadURL, listAll  } from "firebase/storage";
+import { getStorage, ref as storage_ref, getDownloadURL, listAll as storage_listAll } from "firebase/storage";
+import { } from 'firebase/database';
+import { } from 'firebase/auth';
 
 const firebaseConfig = {
     apiKey: "AIzaSyDuz41HpiuRIhAud4-8342byRxCiCxK4Nk",
@@ -20,7 +22,7 @@ const loadStoredImages = async () => {
     if(storedFoodItems == undefined) {
         // console.log('downloading images');
         storedFoodItems = [];
-        const res = await listAll(ref(firebaseStorage))
+        const res = await storage_listAll(storage_ref(firebaseStorage))
         const refs = res.items;
         
         for (const ref of refs) {
@@ -35,6 +37,9 @@ const loadStoredImages = async () => {
     return storedFoodItems;
 }
 
+const testFirebaseDB = async (authToken) => {
+    firebaseApp.datab
+}
 
 export {
     loadStoredImages,
