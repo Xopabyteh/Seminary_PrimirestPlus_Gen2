@@ -1,25 +1,49 @@
 import { searchForFoodPicture } from "./googleImagesService";
 
-let scolarestTab = undefined;
+const isScolarestUrl = (url) => {
+    if (url == undefined)
+        return false;
+    if (!url.includes("mujprimirest.cz"))
+        return false;
+    if (url.includes("auth"))
+        return false;
+
+    return true;
+}
+
+let _scolarestTab = undefined;
+const getScolarestTab = async () => {
+    if(_scolarestTab != undefined)
+        return _scolarestTab;
+    
+    const queryOptions = { url: '*://*.mujprimirest.cz/*'};
+
+    const [tab] = await chrome.tabs.query(queryOptions);
+    if(tab != undefined && tab.id != undefined) {
+        setScolarestTab(tab);
+        return tab;
+    }
+
+    return undefined;
+}
+const setScolarestTab = async (tab) => {
+    _scolarestTab = tab;
+}
+
 
 const onTabUpdated = async (tabId, changeInfo, tab) => {
     if (!changeInfo.status)
         return;
     if (changeInfo.status != 'complete')
         return;
-    if (!tab.url)
-        return;
-    if (!tab.url.includes("mujprimirest.cz"))
-        return;
-    if (tab.url.includes("auth"))
+    if(!isScolarestUrl(tab.url))
         return;
 
     //https://mujprimirest.cz/CS/boarding
     //[0] always link
     //[1] always region info
     //[2...] website page
-    scolarestTab = tab;
-
+    setScolarestTab(tab);
     //Send tab to tabId
     chrome.tabs.sendMessage(
         tabId,
@@ -46,6 +70,21 @@ const setStorageItem = async (key = '', value = '') => {
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    const notifyTabOptionChange = async (key, value) => {
+            const scolarestTab = await getScolarestTab();
+            if(scolarestTab == undefined)
+                return false;
+        
+            chrome.tabs.sendMessage(
+                scolarestTab.id,
+                {
+                    type: 'OPTION_CHANGED',
+                    key: key,
+                    value: value
+                }
+            );
+    }
+
     if(msg.type == 'GET_STORAGE_ITEM') {
         const key = msg.key;
         const defaultValue = msg.defaultValue;
@@ -62,23 +101,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         setStorageItem(key, value);
         
         if(notifyTab) {
-            // chrome.runtime.sendMessage({
-            //     type: 'OPTION_CHANGED',
-            //     key: key,
-            //     value: value
-            // })
-
-            if(scolarestTab == undefined || scolarestTab.id == undefined || scolarestTab.active === false)
-                return false;
-        
-            chrome.tabs.sendMessage(
-                scolarestTab.id,
-                {
-                    type: 'OPTION_CHANGED',
-                    key: key,
-                    value: value
-                }
-            );
+            notifyTabOptionChange(key, value);
         }
 
         return false;
