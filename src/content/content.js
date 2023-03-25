@@ -119,28 +119,12 @@ const handleFoodList = async () => {
         logger.log(mutationList, "onFoodBoardingMutate()");
 
         //Validate, wether we should really update the food table
-        if(viewMode == viewModeOptions.compact) {
-            if (mutationList.length === 6
-                && mutationList[0].removedNodes.length === 1
-                && mutationList[1].addedNodes.length === 1
-                ) {
-                disconnectObserver();
-            } 
-            else {
-                return;
-            }
-        } else if(viewMode == viewModeOptions.full) {
-            if (
-                    (mutationList.length === 10) ||
-                    (mutationList.length === 2 && mutationList[0].target.getAttribute('id') !== 'boarding')
-                ) {
-                disconnectObserver();
-            } 
-        } else if(viewMode == viewModeOptions.index) {
-            if(mutationList.length >= 3) {
-                disconnectObserver();
-            }
+        if(mutationList.length >= 1 && mutationList[0].target.getAttribute('id') !== 'boarding') {
+            disconnectObserver();
+        } else {
+            return;
         }
+
 
         logger.log('Ready to work with foodList', 'Observer')
         

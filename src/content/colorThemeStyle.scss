@@ -121,7 +121,9 @@ select,
     background: var(--background_dark);
 }
 
-.balance-table tbody tr:nth-child(2n) {
+.order.completed,
+.balance-table tbody tr:nth-child(2n)
+{
     background-color: var(--background_dark_alternate);
 }
 
