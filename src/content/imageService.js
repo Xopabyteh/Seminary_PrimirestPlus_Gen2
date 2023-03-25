@@ -9,7 +9,7 @@ const googleSearchForFoodPicture = async (foodName, index, sizeIndex) => {
     return foodPictureSearch;
 }
 
-import { loadStoredImages, getDownloadURL } from './firebaseService';
+import { loadStoredImages, getDownloadURL } from '../globalServices/firebaseService';
 import { compareTwoStrings } from 'string-similarity'; 
 //Caches all image refs from database and uses it as a lookup table for loading existing images
 //Food match is threshold based

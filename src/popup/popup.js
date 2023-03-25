@@ -42,11 +42,16 @@ const onDarkModeButton = async () => {
     buttonDarkMode.classList.toggle('active');
 }
 
+const onLoginButton = async () => {
+    chrome.runtime.sendMessage({
+        type: 'LOGIN'
+    })
+}
+
 var buttonDeveloperMode;
 var buttonDarkMode;
 var darkMode = false;
 var isDeveloper = false;
-
 const init = async () => {
     isDeveloper = await chrome.runtime.sendMessage({
         type: 'GET_STORAGE_ITEM',
@@ -66,6 +71,9 @@ const init = async () => {
     buttonDarkMode.addEventListener("click", onDarkModeButton);
     buttonDarkMode.classList.toggle('active', darkMode);
     changeColorTheme(darkMode);
+
+    const loginButton = document.getElementById('login-button');
+    loginButton.addEventListener('click', onLoginButton);
 }
 
 // chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {

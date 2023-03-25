@@ -69,6 +69,11 @@ const setStorageItem = async (key = '', value = '') => {
     chrome.storage.local.set({ [key] : value });
 }
 
+import { signInWithGoogle } from '../globalServices/firebaseService';
+const login = async () => {
+    await signInWithGoogle();
+}
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     const notifyTabOptionChange = async (key, value) => {
             const scolarestTab = await getScolarestTab();
@@ -114,6 +119,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         const sizeIndex = msg.sizeIndex;
         searchForFoodPicture(query, index, sizeIndex).then(foodPictureSearch => sendResponse(foodPictureSearch));
         return true;
+    } 
+    
+    else if(msg.type == 'LOGIN') {
+        login();
     }
 
     if (chrome.runtime.lastError) {

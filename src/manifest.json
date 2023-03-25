@@ -9,7 +9,8 @@
     "minimum_chrome_version": "88",
     "permissions": [
         "tabs",
-        "storage"
+        "storage",
+        "identity"
     ],
 
     "icons": {
@@ -36,5 +37,15 @@
             "matches": ["*://*.mujprimirest.cz/*"],
             "run_at": "document_idle"
         }
-    ]
+    ],
+
+    "oauth2": {
+        "client_id": "99977831513-e6amb3oparr76tagpi82a7uql9dilhnh.apps.googleusercontent.com",
+        "scopes": [
+          "https://www.googleapis.com/auth/userinfo.profile"
+        ]
+    },
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self';"
+    }
 }
