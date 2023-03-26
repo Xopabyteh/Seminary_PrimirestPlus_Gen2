@@ -23,87 +23,98 @@
     margin-right: 0 !important;
 }
 
-.jidlo-mini thead tr {
-    width: max-content;
-    display: flex;
-    flex-direction: row;
-    align-items: baseline;
+.jidlo-mini {
+    thead tr {
+        width: max-content;
+        display: flex;
+        flex-direction: row;
+        align-items: baseline;
+    }
+    tbody {
+        & {
+            display: flex;
+            flex-direction: column;
+            // width: fit-content;
+            width: 60%;
+            /* width: min-content; */
+        }
+        tr {
+            & {
+                display: grid;
+                grid-template-columns: 512px 10% 10% 10% 10%;
+                grid-template-rows: 4em 3em auto;
+                grid-template-areas:
+                "food-images-holder name name name name"
+                "food-images-holder calories alergies star cart"
+                "food-images-holder rating rating rating rating";
+                align-items: center;
+                justify-content: space-between;
+                
+                text-align: center;
+            }
+            td {
+                &:nth-child(1) {
+                    grid-area: calories;
+            
+                    width: auto;
+                    text-align: center;
+                }
+                &:nth-child(2) {
+                    grid-area: star;
+                    
+                    width: auto;
+                    text-align: center;
+                }
+                
+                /*Skip child(3) because it's weird product name*/
+                &:nth-child(3) {
+                    width: 0;
+                    padding: 0;
+                }
+                &:nth-child(4) {
+                    grid-area: name;
+                }
+                &:nth-child(5) {
+                    grid-area: alergies;
+                }
+                /*Skip child(6) because it's product price'*/
+                &:nth-child(7) {
+                    grid-area: cart;
+                }
+            }
+        }
+    }
 }
 
-.jidlo-mini tbody {
-    display: flex;
-    flex-direction: column;
-    width: fit-content;
-    /* width: min-content; */
+
+/*Weird food category name*/
+.visible-md.visible-lg.visible-xl.width15p {
+    display: none !important;
 }
-
-/*#5 Fix*/
-.jidlo-mini tbody tr td:nth-child(3) {
-    width: 0;
-    padding: 0;
-}
-
-    /*Weird food category name*/
-    .visible-md.visible-lg.visible-xl.width15p {
-        display: none !important;
-    }
-    /*Product price*/
-    .minWidth95x.text-right strong {
-        display: none !important;
-    }
-
-.jidlo-mini tbody tr {
-    display: grid;
-    
-    grid-template-columns: 512px 2% 10% 10% 10% 10% auto;
-    grid-template-rows: auto 4em 2em auto;
-
-    grid-template-areas: 
-    "food-images-holder . . . . . ."
-    "food-images-holder . name name name name ."
-    "food-images-holder . calories alergies star cart ."
-    "food-images-holder . . . . . .";
-
-    /* justify-content: ; */
-    align-items: start;
-}
-    .jidlo-mini tbody tr td:nth-child(1) {
-        grid-area: calories;
-    }
-    .jidlo-mini tbody tr td:nth-child(2) {
-        grid-area: star;
-    }
-    /*Skip child(3) because it's weird product name*/
-    .jidlo-mini tbody tr td:nth-child(4) {
-        grid-area: name;
-    }
-    .jidlo-mini tbody tr td:nth-child(5) {
-        grid-area: alergies;
-    }
-    /*Skip child(6) because it's product price'*/
-    .jidlo-mini tbody tr td:nth-child(7) {
-        grid-area: cart;
-    }
+/*Product price*/
+.minWidth95x.text-right strong {
+    display: none !important;
+} 
 
 .no-data-info {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-
-    grid-area: food-images-holder;
-    position: relative;
-
-    height: 300px;
-    width: auto;
-}
-
-.no-data-info b {
-    font-size:3em;
-}
-
-.no-data-info i {
-    font-size:1em;
+    & {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    
+        grid-area: food-images-holder;
+        position: relative;
+    
+        height: 300px;
+        width: auto;
+    }
+    b {
+        font-size:3em;
+    }
+    i {
+        font-size:1em;
+    }
 }
 
 .food-images-holder {
@@ -116,45 +127,38 @@
     width: auto;
 
     max-width: 512px;
-    // max-width: 512px;
-    // max-height: 512px;
-    // width: min-content;
-    // height: auto;
 }
 
 .food-image {
     height: inherit;
     width: inherit;
     max-width: inherit;
-    // max-width: inherit;
-    // max-height: inherit;
-    // display: block;
-    // width: 100%;
 }
 
 .food-image-loading {
-    visibility: hidden;
-    display: block;
-    position: absolute;
-    z-index: 1;
+    & {
+        visibility: hidden;
+        display: block;
+        position: absolute;
+        z-index: 1;
+        
+        top: calc(50% - 20px);
+        left: calc(50% - 20px);
     
-    top: calc(50% - 20px);
-    left: calc(50% - 20px);
-    /* transform: translate(-50%, -50%); */
+        padding: 0;
+        margin: 0 auto;
+    
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
 
-    padding: 0;
-    margin: 0 auto;
-
-    // border: 4px solid rgba(0, 0, 0, 0.1);
-    // border-top-color: #3498db;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-}
-
-.food-image-loading.active {
-    visibility: visible;
-    animation: spin 1s ease-in-out infinite;
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        border-top-color: var(--text_normal);
+    }
+    &.active {
+        visibility: visible;
+        animation: spin 1s ease-in-out infinite;
+    }
 }
 
 @keyframes spin {
@@ -167,30 +171,78 @@
   }
 
 .food-image-control {
-    display: block;
-    position: absolute;
-    z-index: 1;
+    & {
+        display: block;
+        position: absolute;
+        z-index: 1;
+        
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
     
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-
-    border: 0;
-    padding: 0;
-
-    background-color: transparent;
-    color: transparent;
-    font-size: 3em;
-
-    transition: all 300ms ease-out;
+        border: 0;
+        padding: 0;
+    
+        background-color: transparent;
+        color: transparent;
+        font-size: 3em;
+    
+        transition: all 300ms ease-out;
+    }
+    &:hover {
+        background-color: rgba(255,255,255,0.4);
+        color: var(--text_normal);
+        border-bottom: solid 2px var(--background_bright) !important;
+    }
+    &:disabled {
+        display: none;
+    }
 }
 
-.food-image-control:hover {
-    background-color: rgba(255,255,255,0.4);
-    // color: #3498db;
-}
+.rating-control {
+    & {
+        grid-area: rating;
 
-.food-image-control:disabled {
-    display: none;
+        display: grid;
+        grid-template-columns: 4em auto;
+    }
+    .list-view {
+        ol {
+            & {
+                color: var(--text_normal);
+            }
+            li {
+                & {
+                    display: list-item;
+                }
+                &::before {
+                    display: none;
+                }
+            }
+        }
+        .bar-container {
+            & {
+                $margin-lr: 1em;
+
+                width: calc(100% - 2 * $margin-lr);
+                height: 1em;
+
+                display: inline-block;
+                margin: 0 $margin-lr;
+
+                border-radius: 1rem;
+
+                background: var(--background_dark);
+            }
+            .bar {
+                height: inherit;
+                width: var(--value);
+
+                border-radius: inherit;
+                
+                background: var(--text_header);
+            }
+        }
+    }
 }

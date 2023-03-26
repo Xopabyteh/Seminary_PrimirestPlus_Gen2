@@ -55,6 +55,7 @@ const refactorPriceElements = () => {
     }
 }
 
+//TODO: Optimize with food object rows
 const refactorCalorieElements = () => {
     let calorieCircleParentElements = document.querySelectorAll(".jidlo-mini tbody tr td:has(img)");
 
@@ -93,6 +94,29 @@ const refactorCalorieElements = () => {
         newCalorieElement.innerHTML = calorieObj.txt;
         calorieCircleParent.replaceChild(newCalorieElement, calorieCircleElement);
     }
+}
+
+var ratingControlHTMLTemplate = '';
+const initializeRatingControlTemplate = async () => {
+    const ratingControlURL = chrome.runtime.getURL('ratingControl.html');
+    ratingControlHTMLTemplate = await (await fetch(ratingControlURL)).text();
+}
+
+const addRatingControl = async (foodRowElement = document.createElement(), foodObject) => {
+    const ratingControlHolder = document.createElement('div');
+    ratingControlHolder.className = 'rating-control'
+
+    const ratingControlHTML = ratingControlHTMLTemplate
+                                .replace('__SIMPLE_RATING__', '4.4')
+                                .replace('__RATES_COUNT__', '6')
+                                .replace('__4_STARS_%__', '60%')
+                                .replace('__3_STARS_%__', '12%')
+                                .replace('__2_STARS_%__', '8%')
+                                .replace('__1_STARS_%__', '20%')
+
+    ratingControlHolder.innerHTML = ratingControlHTML;
+
+    foodRowElement.appendChild(ratingControlHolder);
 }
 
 import { addImageToFood, loadStoredImages, removeExistingImageHolders } from './imageService';
@@ -136,10 +160,10 @@ const handleFoodList = async () => {
         //#9    
         refactorCalorieElements();
 
-        //#11 - Add images to food
+        //Get food table elements
         const foodRowElements = document.querySelectorAll(".jidlo-mini tbody tr");
         let soupParts = undefined;
-
+        
         if(foodRowElements.length % 3 == 1) {
             //We're on index page
             const display = foodRowElements[0];
@@ -147,16 +171,20 @@ const handleFoodList = async () => {
             if(deleteButton != undefined) {
                 deleteButton.remove();
             }
-
+            
             logger.log(foodRowElements, "Index page fix")
             soupParts = getSoupParts([foodRowElements[1], foodRowElements[2], foodRowElements[3]]);
         }
 
         soupParts = soupParts ?? getSoupParts(foodRowElements);
         logger.log(soupParts, "#11 Soup parts");
-
+        
+        //#11 - Add images to food
         //Load stored images
         await loadStoredImages();
+
+        //Init rating template so that it can be used to add controls later
+        await initializeRatingControlTemplate();
 
         const getFoodObject = (foodNameElement, soupParts) => {
             let foodName = foodNameElement.innerHTML;
@@ -186,12 +214,15 @@ const handleFoodList = async () => {
         }
 
         //Add images to food
+        //Highlight food name
+        //Add rating control
         for (const foodRowElement of foodRowElements) {
             const foodNameElement = foodRowElement.querySelector("td:nth-child(4) a");
             let foodObject = getFoodObject(foodNameElement, soupParts);
 
             highlightFoodName(foodObject);
             addImageToFood(foodRowElement, foodObject);
+            addRatingControl(foodRowElement, foodObject);
         }
     };
 

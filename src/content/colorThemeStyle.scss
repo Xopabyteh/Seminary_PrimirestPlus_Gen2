@@ -141,15 +141,3 @@ select,
 .customcheck-container input:checked ~ .customcheck-checkmark {
     background-color: var(--text_header) !important;
 }
-  
-/* Primirest+ content*/
-.food-image-control:hover {
-    background-color: rgba(255,255,255,0.4);
-    color: var(--text_normal);
-    border-bottom: solid 2px var(--background_bright) !important;
-}
-
-.food-image-loading {
-    border: 4px solid rgba(0, 0, 0, 0.1);
-    border-top-color: var(--text_normal);
-}
