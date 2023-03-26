@@ -74,19 +74,31 @@ tr th,
     }
 }
 
+.action.favorite *
+{
+    & {
+        color: var(--text_accent) !important; 
+    }
+    &::before {
+        color: var(--text_accent) !important;
+    }
+}
+
 .fa-shopping-cart,
 .fa-times,
 .fa-star,
 .fa-print,
 .fa-download
 {
-    &::before {
-        color:var(--text_header) !important;
-    }
     & {
         color: transparent !important;
     }
+    &::before {
+        color:var(--text_header) !important;
+    }
+    
 }
+
 
 a.disable .fa {
     filter: brightness(0.5);

@@ -30,7 +30,7 @@ const setScolarestTab = async (tab) => {
     _scolarestTab = tab;
 }
 
-
+import { loadStoredRatings } from '../globalServices/firebaseService';
 const onTabUpdated = async (tabId, changeInfo, tab) => {
     if (!changeInfo.status)
         return;
@@ -44,6 +44,7 @@ const onTabUpdated = async (tabId, changeInfo, tab) => {
     //[1] always region info
     //[2...] website page
     setScolarestTab(tab);
+    await loadStoredRatings();
     //Send tab to tabId
     chrome.tabs.sendMessage(
         tabId,
@@ -69,12 +70,30 @@ const setStorageItem = async (key = '', value = '') => {
     chrome.storage.local.set({ [key] : value });
 }
 
-import { testFirebaseDB } from '../globalServices/firebaseService';
-const testDb = async (authToken) => {
-    if(authToken == undefined) {
-        return;
+
+import { signInWithGoogle, clearAuthToken as go_clearAuth } from '../globalServices/googleAuthService';
+const signIn = async (interactive = false) => {
+    const authToken = await signInWithGoogle(interactive);
+    return authToken;
+}
+import { clearAuth as fb_clearAuth } from "../globalServices/firebaseService";
+const signOut = async () => {
+    const googleToken = await signIn(false);
+    await go_clearAuth(googleToken);
+    await fb_clearAuth();
+}
+
+
+import { initializeAuth as fb_initializeAuth, writeFoodRating as fb_writeFoodRating, userAuthenticated, getFoodRating} from '../globalServices/firebaseService';
+const attemptWriteFoodRating = async (food = '', rating = 4) => {
+    if(!userAuthenticated()) {
+        const authToken = await signIn(true);
+        await fb_initializeAuth(authToken);
     }
-    await testFirebaseDB(authToken);
+
+    //'' - 0: Evil conversion to number
+    const res = await fb_writeFoodRating(food, rating - 0);
+    return res;
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
@@ -124,9 +143,30 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         return true;
     } 
 
-    else if(msg.type == 'TEST_DB') {
-        const authToken = msg.authToken;
-        testDb(authToken);
+    else if(msg.type == 'WRITE_FOOD_RATING') {
+        const food = msg.food;
+        const rating = msg.rating;
+        
+        attemptWriteFoodRating(food, rating).then(res => sendResponse(res));
+        return true;
+    }
+
+    else if(msg.type == 'GET_FOOD_RATING') {
+        const food = msg.food;
+        
+        getFoodRating(food).then(res => sendResponse(res));
+        return true;
+    }
+
+    else if(msg.type == 'SIGN_IN') {
+        const interactive = msg.interactive;
+        signIn(interactive).then(token => sendResponse(token));
+        return true;
+    }
+
+    else if(msg.type == 'SIGN_OUT') {
+        signOut();
+        return false;
     }
 
     if (chrome.runtime.lastError) {

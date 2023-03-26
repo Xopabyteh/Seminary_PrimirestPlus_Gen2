@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getStorage, ref as storage_ref, getDownloadURL, listAll as storage_listAll } from "firebase/storage";
-import { getDatabase, ref as db_ref, set as db_set } from 'firebase/database';
+import { getDatabase, ref as db_ref, set as db_set, get as db_get } from 'firebase/database';
 import { getAuth, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
 
 const firebaseConfig = {
@@ -39,27 +39,73 @@ const loadStoredImages = async () => {
 }
 
 const db = getDatabase(firebaseApp);
-const testFirebaseDB = async (authToken) => {
+var userCredential;
+var user;
+
+const initializeAuth = async (googleAuthToken) => {
+    const credential = GoogleAuthProvider.credential(null, googleAuthToken);
+    userCredential = await signInWithCredential(getAuth(firebaseApp), credential);
+    user = userCredential.user;
+}
+const clearAuth = async () => {
+    userCredential = undefined;
+    user = undefined;
+}
+const userAuthenticated = () => {
+    return user != undefined && user.uid != undefined;
+}
+
+//-2 What the hell.
+//-1: error
+//0: sucess
+const writeFoodRating = async (food = '', rating = 1) => {
+    if(!userAuthenticated()) { 
+        console.error('User not authenticated');
+        return -1;
+    }    
+
     try {
-        const credential = GoogleAuthProvider.credential(null, authToken);
-        const userCredential = await signInWithCredential(getAuth(firebaseApp), credential);
-        const user = userCredential.user;
-        console.log(userCredential);
-    
         // Write a rating to the database
-        const food = 'pizza';
-        const rating = 4;
         const dbKeyRef = db_ref(db, 'FoodRatings/' + user.uid + '/' + food);
         console.log(dbKeyRef);
         await db_set(dbKeyRef, rating);
-        console.log('Rating saved to database');
-      } catch (error) {
-        console.error('Error:', error);
-      }
+        return 0;
+    } catch (error) {
+        console.error(error);
+        return -1;
+    }
+    return -2
+}
+var storedRatings = undefined;
+const loadStoredRatings = async () => {
+    const foodRatingsRef = db_ref(db, 'FoodRatings');
+    const foodRatings = await db_get(foodRatingsRef);
+    storedRatings = foodRatings;
+}
+const getFoodRating = async (food = '') => {
+    if(storedRatings == undefined)
+        return undefined;
+
+    try {
+        // Query the ratings for all food ratings for the given food item
+        const foodRatings = [];
+
+        return storedRatings;
+    }
+    catch (error) {
+        console.error(error);
+        return undefined;
+    }
 }
 
 export {
     loadStoredImages,
     getDownloadURL,
-    testFirebaseDB
+    initializeAuth,
+    clearAuth,
+    writeFoodRating,
+    userAuthenticated,
+    loadStoredRatings,
+    getFoodRating
+    // testFirebaseDB
 }

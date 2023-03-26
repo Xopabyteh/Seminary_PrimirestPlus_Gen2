@@ -96,6 +96,15 @@ const refactorCalorieElements = () => {
     }
 }
 
+const writeFoodRating = async (food = '', rating = 1) => {
+    const response = await chrome.runtime.sendMessage({
+        type: 'WRITE_FOOD_RATING',
+        food: food,
+        rating: rating
+    });
+    logger.log(response, 'writeFoodRating()');
+}
+
 var ratingControlHTMLTemplate = '';
 const initializeRatingControlTemplate = async () => {
     const ratingControlURL = chrome.runtime.getURL('ratingControl.html');
@@ -106,6 +115,13 @@ const addRatingControl = async (foodRowElement = document.createElement(), foodO
     const ratingControlHolder = document.createElement('div');
     ratingControlHolder.className = 'rating-control'
 
+    const foodRating = await chrome.runtime.sendMessage({
+        type: 'GET_FOOD_RATING',
+        food: foodObject.foodName,
+    });
+
+    logger.log(foodRating, 'writeFoodRating()');
+    
     const ratingControlHTML = ratingControlHTMLTemplate
                                 .replace('__SIMPLE_RATING__', '4.4')
                                 .replace('__RATES_COUNT__', '6')
@@ -115,6 +131,14 @@ const addRatingControl = async (foodRowElement = document.createElement(), foodO
                                 .replace('__1_STARS_%__', '20%')
 
     ratingControlHolder.innerHTML = ratingControlHTML;
+
+    const buttons = ratingControlHolder.querySelectorAll('a');
+    for (const button of buttons) {
+        const buttonVal = button.getAttribute('value');
+        button.addEventListener('click', async ()=> {
+            await writeFoodRating(foodObject.foodName, buttonVal);
+        });
+    }
 
     foodRowElement.appendChild(ratingControlHolder);
 }

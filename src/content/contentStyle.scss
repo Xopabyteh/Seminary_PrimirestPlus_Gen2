@@ -35,7 +35,7 @@
             display: flex;
             flex-direction: column;
             // width: fit-content;
-            width: 60%;
+            width: 100%;
             /* width: min-content; */
         }
         tr {
@@ -199,49 +199,59 @@
         display: none;
     }
 }
-
 .rating-control {
     & {
         grid-area: rating;
-
-        display: grid;
-        grid-template-columns: 4em auto;
+        
     }
-    .list-view {
-        ol {
-            & {
-                color: var(--text_normal);
-            }
-            li {
-                & {
-                    display: list-item;
-                }
-                &::before {
-                    display: none;
-                }
-            }
+    .rating-stars {
+        .fa-star {            
+            margin: 0.25em;
+            font-size: 1.5em;
         }
-        .bar-container {
-            & {
-                $margin-lr: 1em;
-
-                width: calc(100% - 2 * $margin-lr);
-                height: 1em;
-
-                display: inline-block;
-                margin: 0 $margin-lr;
-
-                border-radius: 1rem;
-
-                background: var(--background_dark);
+    }
+    .rating-statistics {
+        & {
+    
+            display: grid;
+            grid-template-columns: 4em auto;
+        }
+        .list-view {
+            ol {
+                & {
+                    color: var(--text_normal);
+                }
+                li {
+                    & {
+                        display: list-item;
+                    }
+                    &::before {
+                        display: none;
+                    }
+                }
             }
-            .bar {
-                height: inherit;
-                width: var(--value);
-
-                border-radius: inherit;
-                
-                background: var(--text_header);
+            .bar-container {
+                & {
+                    $margin-lr: 1em;
+    
+                    width: calc(100% - 2 * $margin-lr);
+                    height: 1em;
+    
+                    display: inline-block;
+                    margin: 0 $margin-lr;
+    
+                    border-radius: 1rem;
+    
+                    background: var(--background_dark);
+                }
+                .bar {
+                    height: inherit;
+                    width: var(--value);
+    
+                    border-radius: inherit;
+                    
+                    background: var(--text_header);
+                }
             }
         }
     }

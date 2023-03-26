@@ -45,16 +45,22 @@ const onDarkModeButton = async () => {
 import { signInWithGoogle, getProfilePicture, clearAuthToken } from '../globalServices/googleAuthService';
 var authToken;
 const login = async (interactive = false) => {
-    const token = await signInWithGoogle(interactive);
-    await addSignoutControl();
+    const token = await chrome.runtime.sendMessage({
+        type: 'SIGN_IN',
+        interactive: interactive
+    })
     authToken = token;
+    await addSignoutControl();
 }
 
 const signOut = async () => {
     if(authToken == undefined)
         return;
     
-    await clearAuthToken(authToken);
+    await chrome.runtime.sendMessage({
+        type: 'SIGN_OUT',
+    })
+
     await addLoginControl();
 }
 
