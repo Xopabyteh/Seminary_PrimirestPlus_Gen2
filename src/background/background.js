@@ -88,6 +88,10 @@ import { initializeAuth as fb_initializeAuth, writeFoodRating as fb_writeFoodRat
 const attemptWriteFoodRating = async (food = '', rating = 4) => {
     if(!userAuthenticated()) {
         const authToken = await signIn(true);
+        //User declined login prompt
+        if(authToken == undefined) {
+            return undefined;
+        }
         await fb_initializeAuth(authToken);
     }
 

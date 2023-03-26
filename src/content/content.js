@@ -119,16 +119,29 @@ const addRatingControl = async (foodRowElement = document.createElement(), foodO
         type: 'GET_FOOD_RATING',
         food: foodObject.foodName,
     });
-
     logger.log(foodRating, 'writeFoodRating()');
-    
+
+    //0: number of 1s, 1: number of 2s, ...
+    const ratingCounts = [0, 0, 0, 0];
+    let totalRatingsCount = 0;
+    for (const rating of foodRating) {
+        ratingCounts[rating-1]++;
+        totalRatingsCount++;
+    }
+
+    //Dont divide by zero, set all to 0
+    if(totalRatingsCount == 0) {
+        totalRatingsCount = 1;
+    }
+
+    const median = (ratingCounts[0] + ratingCounts[1]*2 + ratingCounts[2]*3 + ratingCounts[3]*4) / totalRatingsCount;
     const ratingControlHTML = ratingControlHTMLTemplate
-                                .replace('__SIMPLE_RATING__', '4.4')
-                                .replace('__RATES_COUNT__', '6')
-                                .replace('__4_STARS_%__', '60%')
-                                .replace('__3_STARS_%__', '12%')
-                                .replace('__2_STARS_%__', '8%')
-                                .replace('__1_STARS_%__', '20%')
+                                .replace('__SIMPLE_RATING__', `${median}`)
+                                .replace('__RATES_COUNT__', totalRatingsCount)
+                                .replace('__1_STARS_%__', `${(ratingCounts[0] / totalRatingsCount * 100.0)}%`)
+                                .replace('__2_STARS_%__', `${(ratingCounts[1] / totalRatingsCount * 100.0)}%`)
+                                .replace('__3_STARS_%__', `${(ratingCounts[2] / totalRatingsCount * 100.0)}%`)
+                                .replace('__4_STARS_%__', `${(ratingCounts[3] / totalRatingsCount * 100.0)}%`)
 
     ratingControlHolder.innerHTML = ratingControlHTML;
 

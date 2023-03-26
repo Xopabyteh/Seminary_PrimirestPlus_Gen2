@@ -78,19 +78,26 @@ const writeFoodRating = async (food = '', rating = 1) => {
 }
 var storedRatings = undefined;
 const loadStoredRatings = async () => {
-    const foodRatingsRef = db_ref(db, 'FoodRatings');
-    const foodRatings = await db_get(foodRatingsRef);
-    storedRatings = foodRatings;
+    const foodRatingsRef = db_ref(db, 'FoodRatings/');
+    const foodRatingsSnapshot = await db_get(foodRatingsRef);
+    storedRatings = await foodRatingsSnapshot.val();
 }
 const getFoodRating = async (food = '') => {
     if(storedRatings == undefined)
         return undefined;
-
     try {
         // Query the ratings for all food ratings for the given food item
         const foodRatings = [];
-
-        return storedRatings;
+            
+        // Loop through each user in the object
+        for (const user in storedRatings) {
+            // Check if the food exists in this user's object
+            if (storedRatings[user][food] != undefined) {
+                // If it does, push the value to the array
+                foodRatings.push(storedRatings[user][food]);
+            }
+        }
+        return foodRatings;
     }
     catch (error) {
         console.error(error);

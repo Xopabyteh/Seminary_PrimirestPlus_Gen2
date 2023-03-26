@@ -42,13 +42,18 @@ const onDarkModeButton = async () => {
     buttonDarkMode.classList.toggle('active');
 }
 
-import { signInWithGoogle, getProfilePicture, clearAuthToken } from '../globalServices/googleAuthService';
+import { getProfilePicture } from '../globalServices/googleAuthService';
 var authToken;
 const login = async (interactive = false) => {
     const token = await chrome.runtime.sendMessage({
         type: 'SIGN_IN',
         interactive: interactive
     })
+    //User declined login prompt
+    if(token == undefined) {
+        return;
+    }
+
     authToken = token;
     await addSignoutControl();
 }

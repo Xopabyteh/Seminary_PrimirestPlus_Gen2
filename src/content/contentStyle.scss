@@ -205,9 +205,25 @@
         
     }
     .rating-stars {
-        .fa-star {            
-            margin: 0.25em;
-            font-size: 1.5em;
+        .fa-star { 
+            & {
+                margin: 0.25em;
+
+                font-size: 1.5em;
+            }
+            &:hover,
+            &:focus {
+                &::before {
+                    color: var(--text_accent) !important;
+                }
+
+                //TODO: 
+                & ~ .fa-star {
+                    background-color: red;
+                    // color: var(--text_accent) !important;
+                }
+            }
+  
         }
     }
     .rating-statistics {
