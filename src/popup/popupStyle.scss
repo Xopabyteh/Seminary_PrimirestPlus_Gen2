@@ -1,6 +1,7 @@
 :root {
   --text_normal: 	#fff;
   --text_header: #7289da;
+  --text_accent: yellow;
   --background_bright: #99aab5;
   --background_dark_alternate: #2F3437;
   --background_dark: #2c2f33;
@@ -10,16 +11,19 @@
 body {
   width: 200px;
   height: auto;
+  padding: 8px;
+
+  display: grid;
+
   color: var(--text_normal);
   background-color: var(--background_darkest);
 
-  display: grid;
 }
 
 .title {
     font-size: 14px;
     font-weight: bold;
-    padding: 8px;
+    margin-bottom: 8px;
 }
 
 
@@ -67,13 +71,22 @@ body {
   transform: translateX(20px);
 }
 
-a.actionButton {
-  & {
-    display: inline-block;
-    position: relative;
-    height: 20px;
-    color: var(--text_normal);
+a{
+  &.actionButton {
+    & {
+      display: inline-block;
+      position: relative;
+      height: 20px;
+      color: var(--text_normal);
+    }
   }
+  &.actionLink {
+    width: 20px;
+    height: 20px;
+    text-decoration: none;
+    color: var(--text_accent);
+  }
+
   &:active {
     color: var(--background_bright);
   }
@@ -82,12 +95,15 @@ a.actionButton {
 #login-form-holder {
   & {
     display: flex;
-    justify-content: space-between;
     align-items: center;
   }
   #profile-picture {
     width: 32px;
     height: 32px;
-    clip-path: circle();
+    margin-right: 16px;
+    clip-path: circle();  
+  }
+  #login-button {
+    margin-right: 16px;
   }
 }

@@ -1,23 +1,3 @@
-const sendMessageToScolarestTab = async (msg) => {
-    chrome.tabs.query(
-        {
-            active: true,
-            currentWindow: true
-        },
-        async (tabs) => {
-            let tab = tabs[0];
-            if (!tab.url || !tab.url.includes("mujprimirest.cz")) {
-                return;
-            }
-            const response = await chrome.tabs.sendMessage(
-                tab.id,
-                msg
-            );
-            return response;
-        }
-    );
-}
-
 const onDeveloperModeButton = async () => {
     await chrome.runtime.sendMessage({
         type: 'SET_STORAGE_ITEM',
@@ -88,13 +68,6 @@ const addSignoutControl = async () => {
     signOutButton.addEventListener('click', signOut);
 }
 
-const onTestButton = async () => {
-    chrome.runtime.sendMessage({
-        type: 'TEST_DB',
-        authToken: authToken
-    });
-}
-
 var buttonDeveloperMode;
 var buttonDarkMode;
 var darkMode = false;
@@ -128,9 +101,6 @@ const init = async () => {
     } else {
         await addLoginControl();
     }
-    
-    const testButton = document.getElementById('test-button');
-    testButton.addEventListener('click', onTestButton);
 }
 
 document.addEventListener("DOMContentLoaded", init);
