@@ -97,12 +97,13 @@ const refactorCalorieElements = () => {
 }
 
 const writeFoodRating = async (food = '', rating = 1) => {
-    const response = await chrome.runtime.sendMessage({
+    const responseStatus = await chrome.runtime.sendMessage({
         type: 'WRITE_FOOD_RATING',
         food: food,
         rating: rating
     });
-    logger.log(response, 'writeFoodRating()');
+    logger.log(responseStatus, 'writeFoodRating()');
+    return responseStatus;
 }
 
 var ratingStatisticsHTMLTemplate = '';
@@ -191,9 +192,9 @@ const addRatingDisplay = async (foodRowElement = document.createElement(), foodO
     }
         
     stars.forEach(star => {
-      star.addEventListener('click', () => {
+      star.addEventListener('click', async () => {
         const value = parseInt(star.getAttribute('value'));
-        const writeStatus = writeFoodRating(foodObject.foodName, value);
+        const writeStatus = await writeFoodRating(foodObject.foodName, value);
         if(writeStatus === 0) {
             maxDecidedStarIndex = value;
             resetStars();
