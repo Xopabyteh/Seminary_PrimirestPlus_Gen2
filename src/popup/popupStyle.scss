@@ -109,6 +109,7 @@ a {
       .tooltip {
         visibility: hidden;
   
+        pointer-events: none;
         position: absolute;
         z-index: 10;
   
