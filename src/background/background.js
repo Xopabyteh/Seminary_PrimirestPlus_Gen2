@@ -12,6 +12,7 @@ const isScolarestUrl = (url) => {
 }
 
 let _scolarestTab = undefined;
+//Uses caching
 const getScolarestTab = async () => {
     if(_scolarestTab != undefined)
         return _scolarestTab;
@@ -85,13 +86,20 @@ const signOut = async () => {
 
 
 import { initializeAuth as fb_initializeAuth, writeFoodRating as fb_writeFoodRating, userAuthenticated, getFoodRating} from '../globalServices/firebaseService';
+//-2 What the hell.
+//-1: error
+//0: sucess
 const attemptWriteFoodRating = async (food = '', rating = 4) => {
     if(!userAuthenticated()) {
         const authToken = await signIn(true);
         //User declined login prompt
         if(authToken == undefined) {
-            return undefined;
+            return -1;
         }
+
+        const scolarestTab = getScolarestTab()
+        chrome.tabs.reload(scolarestTab.id);
+        
         await fb_initializeAuth(authToken);
     }
 
@@ -163,12 +171,26 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
     else if(msg.type == 'SIGN_IN') {
         const interactive = msg.interactive;
-        signIn(interactive).then(token => sendResponse(token));
+        const reloadTab = msg.reloadTab ?? false;
+        signIn(interactive).then(token => {
+            sendResponse(token)
+            if(reloadTab) {
+                getScolarestTab().then(scolarestTab => {
+                    chrome.tabs.reload(scolarestTab.id);
+                })
+            }
+        });
         return true;
     }
 
     else if(msg.type == 'SIGN_OUT') {
+        const reloadTab = msg.reloadTab ?? false;
         signOut();
+        if(reloadTab) {
+            getScolarestTab().then(scolarestTab => {
+                chrome.tabs.reload(scolarestTab.id);
+            })
+        }
         return false;
     }
 

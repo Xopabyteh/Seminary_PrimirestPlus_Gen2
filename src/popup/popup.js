@@ -54,7 +54,8 @@ var authToken;
 const login = async (interactive = false) => {
     const token = await chrome.runtime.sendMessage({
         type: 'SIGN_IN',
-        interactive: interactive
+        interactive: interactive,
+        reloadTab: interactive
     })
     //User declined login prompt
     if(token == undefined) {
@@ -71,6 +72,7 @@ const signOut = async () => {
     
     await chrome.runtime.sendMessage({
         type: 'SIGN_OUT',
+        reloadTab: true
     })
 
     await addLoginControl();

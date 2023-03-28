@@ -130,7 +130,7 @@ const addRatingDisplay = async (foodRowElement = document.createElement(), foodO
     });
     const foodRating = foodRatingObject.foodRating;
     const userRating = foodRatingObject.userRating;
-    logger.log(foodRating, 'writeFoodRating()');
+    logger.log(foodRating, 'incoming ratings');
 
     //0: number of 1s, 1: number of 2s, ...
     const ratingCounts = [0, 0, 0, 0];
@@ -193,9 +193,11 @@ const addRatingDisplay = async (foodRowElement = document.createElement(), foodO
     stars.forEach(star => {
       star.addEventListener('click', () => {
         const value = parseInt(star.getAttribute('value'));
-        maxDecidedStarIndex = value;
-        resetStars();
-        writeFoodRating(foodObject.foodName, value);
+        const writeStatus = writeFoodRating(foodObject.foodName, value);
+        if(writeStatus === 0) {
+            maxDecidedStarIndex = value;
+            resetStars();
+        }
       });
     
       star.addEventListener('mouseover', () => {

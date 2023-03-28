@@ -260,7 +260,8 @@
         user-select: none;
 
         &:hover,
-        &:focus {
+        // &:focus
+        {
           color: var(--text_accent) !important;
         }
     
