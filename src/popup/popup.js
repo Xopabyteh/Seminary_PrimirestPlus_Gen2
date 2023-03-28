@@ -101,6 +101,18 @@ const init = async () => {
     } else {
         await addLoginControl();
     }
+
+    //Action links
+    const actionLinks = document.querySelectorAll('.actionLink');
+    for (const actionLink of actionLinks) {
+        const dest = actionLink.getAttribute('value');
+        actionLink.addEventListener('click', async ()=>{
+            const properties = {
+                url: dest
+            };
+            await chrome.tabs.create(properties);
+        });
+    }
 }
 
 document.addEventListener("DOMContentLoaded", init);

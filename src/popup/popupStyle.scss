@@ -107,3 +107,32 @@ a{
     margin-right: 16px;
   }
 }
+
+a {
+  &.actionLink::before {
+    content: '?';
+  }
+  & {
+    .tooltip {
+      visibility: hidden;
+
+      position: absolute;
+      z-index: 10;
+
+      color: var(--text_normal);
+      background-color: var(--background_dark_alternate);
+      
+      padding: 4px;
+      border-radius: 4px;
+
+      transition: transform 0.5s cubic-bezier(0.075, 0.82, 0.165, 1);
+    }
+  }
+  &:hover {
+    .tooltip {
+      visibility: visible;
+
+      transform: translate(0, -40%);
+    }
+  }
+}
