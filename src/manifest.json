@@ -43,7 +43,10 @@
     "web_accessible_resources": [
         {
             "matches": ["*://*.mujprimirest.cz/*"],
-            "resources": ["ratingControl.html"]
+            "resources": [
+                "ratingControl.html",
+                "ratingStatistics.html"
+            ]
         }
     ],
 

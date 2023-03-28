@@ -157,7 +157,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
     else if(msg.type == 'GET_FOOD_RATING') {
         const food = msg.food;
-        
         getFoodRating(food).then(res => sendResponse(res));
         return true;
     }
@@ -171,6 +170,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     else if(msg.type == 'SIGN_OUT') {
         signOut();
         return false;
+    }
+
+    else if(msg.type == 'INIT_FB_AUTH') {
+        signIn(false)
+            .then(token => fb_initializeAuth(token))
+            .then(user => sendResponse(user));
+        return true;
     }
 
     if (chrome.runtime.lastError) {

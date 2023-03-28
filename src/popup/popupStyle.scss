@@ -71,27 +71,6 @@ body {
   transform: translateX(20px);
 }
 
-a{
-  &.actionButton {
-    & {
-      display: inline-block;
-      position: relative;
-      height: 20px;
-      color: var(--text_normal);
-    }
-  }
-  &.actionLink {
-    width: 20px;
-    height: 20px;
-    text-decoration: none;
-    color: var(--text_accent);
-  }
-
-  &:active {
-    color: var(--background_bright);
-  }
-}
-
 #login-form-holder {
   & {
     display: flex;
@@ -109,30 +88,49 @@ a{
 }
 
 a {
-  &.actionLink::before {
-    content: '?';
-  }
-  & {
-    .tooltip {
-      visibility: hidden;
-
-      position: absolute;
-      z-index: 10;
-
+  &.actionButton {
+    & {
+      display: inline-block;
+      position: relative;
+      height: 20px;
       color: var(--text_normal);
-      background-color: var(--background_dark_alternate);
-      
-      padding: 4px;
-      border-radius: 4px;
-
-      transition: transform 0.5s cubic-bezier(0.075, 0.82, 0.165, 1);
     }
   }
-  &:hover {
-    .tooltip {
-      visibility: visible;
+  &.actionLink {
+    width: 20px;
+    height: 20px;
+    text-decoration: none;
+    color: var(--text_header);
 
-      transform: translate(0, -40%);
+    & {
+      p {
+        display: inline;
+      }
+      .tooltip {
+        visibility: hidden;
+  
+        position: absolute;
+        z-index: 10;
+  
+        color: var(--text_normal);
+        background-color: var(--background_dark_alternate);
+        
+        padding: 4px;
+        border-radius: 4px;
+  
+        transition: transform 0.5s cubic-bezier(0.075, 0.82, 0.165, 1);
+      }
     }
+    &:hover {
+      .tooltip {
+        visibility: visible;
+  
+        transform: translate(8px, -150%);
+      }
+    }
+  }
+
+  &:active {
+    color: var(--background_bright);
   }
 }

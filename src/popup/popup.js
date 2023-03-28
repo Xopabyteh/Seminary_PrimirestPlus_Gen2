@@ -1,3 +1,30 @@
+const openLink = async (actionLinkElement) => {
+    if(actionLinkElement == undefined)
+        return;
+
+    const properties = {
+        url: actionLinkElement.getAttribute('value')
+    };
+    await chrome.tabs.create(properties);
+}
+
+const initActionLinkObserver = async () => {
+    //ActionLinks
+    const actionLinkObserver = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+            mutation.addedNodes.forEach(node => {
+                if (node.classList && node.classList.contains('actionLink')) {
+                    node.onclick = () => openLink(node);
+                };
+            });
+        });
+    });
+      
+    // Start observing the DOM for changes
+    actionLinkObserver.observe(document.body, { childList: true, subtree: true });
+    return actionLinkObserver;
+}
+
 const onDeveloperModeButton = async () => {
     await chrome.runtime.sendMessage({
         type: 'SET_STORAGE_ITEM',
@@ -74,6 +101,9 @@ var darkMode = false;
 var isDeveloper = false;
 var loginFormHolder;
 const init = async () => {
+    //Due to dynamic updating of action links
+    await initActionLinkObserver();
+
     isDeveloper = await chrome.runtime.sendMessage({
         type: 'GET_STORAGE_ITEM',
         key: 'isDeveloper',
@@ -101,19 +131,6 @@ const init = async () => {
     } else {
         await addLoginControl();
     }
-
-    //Action links
-    const actionLinks = document.querySelectorAll('.actionLink');
-    for (const actionLink of actionLinks) {
-        const dest = actionLink.getAttribute('value');
-        actionLink.addEventListener('click', async ()=>{
-            const properties = {
-                url: dest
-            };
-            await chrome.tabs.create(properties);
-        });
-    }
 }
-
 document.addEventListener("DOMContentLoaded", init);
 

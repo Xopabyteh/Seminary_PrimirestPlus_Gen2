@@ -105,20 +105,31 @@ const writeFoodRating = async (food = '', rating = 1) => {
     logger.log(response, 'writeFoodRating()');
 }
 
+var ratingStatisticsHTMLTemplate = '';
 var ratingControlHTMLTemplate = '';
-const initializeRatingControlTemplate = async () => {
-    const ratingControlURL = chrome.runtime.getURL('ratingControl.html');
+const initializeRatingDisplayTemplates = async () => {
+    const ratingStatisticsURL = await chrome.runtime.getURL('ratingStatistics.html');
+    ratingStatisticsHTMLTemplate = await (await fetch(ratingStatisticsURL)).text();
+
+    const ratingControlURL = await chrome.runtime.getURL('ratingControl.html');
     ratingControlHTMLTemplate = await (await fetch(ratingControlURL)).text();
 }
 
-const addRatingControl = async (foodRowElement = document.createElement(), foodObject) => {
-    const ratingControlHolder = document.createElement('div');
-    ratingControlHolder.className = 'rating-control'
+const addRatingDisplay = async (foodRowElement = document.createElement(), foodObject) => {
+    //Statistics
+    const ratingStatisticsHolder = document.createElement('div');
+    ratingStatisticsHolder.className = 'rating-statistics'
 
-    const foodRating = await chrome.runtime.sendMessage({
+    // {
+    //     foodRating: foodRating,
+    //     userRating: userRating
+    // };
+    const foodRatingObject = await chrome.runtime.sendMessage({
         type: 'GET_FOOD_RATING',
-        food: foodObject.foodName,
+        food: foodObject.foodName
     });
+    const foodRating = foodRatingObject.foodRating;
+    const userRating = foodRatingObject.userRating;
     logger.log(foodRating, 'writeFoodRating()');
 
     //0: number of 1s, 1: number of 2s, ...
@@ -135,7 +146,7 @@ const addRatingControl = async (foodRowElement = document.createElement(), foodO
     }
 
     const median = (ratingCounts[0] + ratingCounts[1]*2 + ratingCounts[2]*3 + ratingCounts[3]*4) / totalRatingsCount;
-    const ratingControlHTML = ratingControlHTMLTemplate
+    const ratingStatisticsHTML = ratingStatisticsHTMLTemplate
                                 .replace('__SIMPLE_RATING__', `${median}`)
                                 .replace('__RATES_COUNT__', totalRatingsCount)
                                 .replace('__1_STARS_%__', `${(ratingCounts[0] / totalRatingsCount * 100.0)}%`)
@@ -143,17 +154,65 @@ const addRatingControl = async (foodRowElement = document.createElement(), foodO
                                 .replace('__3_STARS_%__', `${(ratingCounts[2] / totalRatingsCount * 100.0)}%`)
                                 .replace('__4_STARS_%__', `${(ratingCounts[3] / totalRatingsCount * 100.0)}%`)
 
-    ratingControlHolder.innerHTML = ratingControlHTML;
+    ratingStatisticsHolder.innerHTML = ratingStatisticsHTML;
 
-    const buttons = ratingControlHolder.querySelectorAll('a');
-    for (const button of buttons) {
-        const buttonVal = button.getAttribute('value');
-        button.addEventListener('click', async ()=> {
-            await writeFoodRating(foodObject.foodName, buttonVal);
-        });
+    //Controls
+    let ratingControl = foodRowElement.querySelector('td:nth-child(2)');
+    ratingControl.outerHTML = ratingControlHTMLTemplate;
+    
+    //Evil reload
+    ratingControl = foodRowElement.querySelector('td:nth-child(2)');
+
+    const stars = ratingControl.querySelectorAll('a');
+    let maxDecidedStarIndex = 0;
+
+    const setHoverStars = (index) => {
+        for (let i = 0; i < stars.length; i++) {
+            stars[i].classList.toggle('decided', false);
+
+            if (i < index) {
+                stars[i].classList.toggle('hover', true);
+            } else {
+                stars[i].classList.toggle('hover', false);
+            }
+        }
     }
 
-    foodRowElement.appendChild(ratingControlHolder);
+    const resetStars = () => {
+        for (let i = 0; i < stars.length; i++) {
+            stars[i].classList.toggle('hover', false);
+
+            if (i < maxDecidedStarIndex) {
+                stars[i].classList.toggle('decided', true);
+            } else {
+                stars[i].classList.toggle('decided', false);
+            }
+        }
+    }
+        
+    stars.forEach(star => {
+      star.addEventListener('click', () => {
+        const value = parseInt(star.getAttribute('value'));
+        maxDecidedStarIndex = value;
+        resetStars();
+        writeFoodRating(foodObject.foodName, value);
+      });
+    
+      star.addEventListener('mouseover', () => {
+        const value = parseInt(star.getAttribute('value'));
+        setHoverStars(value);
+      });
+    
+      star.addEventListener('mouseout', () => {
+        resetStars();
+      });
+    });
+
+    if(userRating != undefined) {
+        maxDecidedStarIndex = userRating;
+        resetStars();
+    }
+    foodRowElement.appendChild(ratingStatisticsHolder);
 }
 
 import { addImageToFood, loadStoredImages, removeExistingImageHolders } from './imageService';
@@ -221,7 +280,12 @@ const handleFoodList = async () => {
         await loadStoredImages();
 
         //Init rating template so that it can be used to add controls later
-        await initializeRatingControlTemplate();
+        await initializeRatingDisplayTemplates();
+
+        //Init fb auth to retrieve user ratings
+        const fb_auth = await chrome.runtime.sendMessage({
+            type: 'INIT_FB_AUTH'
+        });
 
         const getFoodObject = (foodNameElement, soupParts) => {
             let foodName = foodNameElement.innerHTML;
@@ -259,7 +323,7 @@ const handleFoodList = async () => {
 
             highlightFoodName(foodObject);
             addImageToFood(foodRowElement, foodObject);
-            addRatingControl(foodRowElement, foodObject);
+            addRatingDisplay(foodRowElement, foodObject);
         }
     };
 

@@ -48,7 +48,7 @@
                 "food-images-holder calories alergies star cart"
                 "food-images-holder rating rating rating rating";
                 align-items: center;
-                justify-content: space-between;
+                justify-content: start;
                 
                 text-align: center;
             }
@@ -59,12 +59,12 @@
                     width: auto;
                     text-align: center;
                 }
-                &:nth-child(2) {
-                    grid-area: star;
+                // &:nth-child(2) {
+                //     grid-area: star;
                     
-                    width: auto;
-                    text-align: center;
-                }
+                //     width: auto;
+                //     text-align: center;
+                // }
                 
                 /*Skip child(3) because it's weird product name*/
                 &:nth-child(3) {
@@ -72,6 +72,7 @@
                     padding: 0;
                 }
                 &:nth-child(4) {
+                    font-size: 1.2em;
                     grid-area: name;
                 }
                 &:nth-child(5) {
@@ -199,76 +200,85 @@
         display: none;
     }
 }
-.rating-control {
+.rating-statistics {
     & {
         grid-area: rating;
-        
+        display: grid;
+        grid-template-columns: 4em auto;
     }
-    .rating-stars {
-        .fa-star { 
+    .list-view {
+        ol {
             & {
-                margin: 0.25em;
-
-                font-size: 1.5em;
+                color: var(--text_normal);
             }
-            &:hover,
-            &:focus {
+            li {
+                & {
+                    display: list-item;
+                }
                 &::before {
-                    color: var(--text_accent) !important;
-                }
-
-                //TODO: 
-                & ~ .fa-star {
-                    background-color: red;
-                    // color: var(--text_accent) !important;
+                    display: none;
                 }
             }
-  
+        }
+        .bar-container {
+            & {
+                $margin-lr: 1em;
+    
+                width: calc(100% - 2 * $margin-lr);
+                height: 1em;
+    
+                display: inline-block;
+                margin: 0 $margin-lr;
+    
+                border-radius: 1rem;
+    
+                background: var(--background_dark);
+            }
+            .bar {
+                height: inherit;
+                width: var(--value);
+    
+                border-radius: inherit;
+                
+                background: var(--text_header);
+            }
         }
     }
-    .rating-statistics {
-        & {
-    
-            display: grid;
-            grid-template-columns: 4em auto;
+}
+
+.rating-control { 
+    & {
+        grid-area: star;
+        user-select: none;
+    }
+    a {
+        display: inline-block;
+        font-size: 1.5em;
+        text-decoration: none !important;
+
+        color: var(--text_header) !important;
+        user-select: none;
+
+        &:hover,
+        &:focus {
+          color: var(--text_accent) !important;
         }
-        .list-view {
-            ol {
-                & {
-                    color: var(--text_normal);
-                }
-                li {
-                    & {
-                        display: list-item;
-                    }
-                    &::before {
-                        display: none;
-                    }
-                }
-            }
-            .bar-container {
-                & {
-                    $margin-lr: 1em;
     
-                    width: calc(100% - 2 * $margin-lr);
-                    height: 1em;
-    
-                    display: inline-block;
-                    margin: 0 $margin-lr;
-    
-                    border-radius: 1rem;
-    
-                    background: var(--background_dark);
-                }
-                .bar {
-                    height: inherit;
-                    width: var(--value);
-    
-                    border-radius: inherit;
-                    
-                    background: var(--text_header);
-                }
-            }
+        &.hover,
+        &.decided
+        {
+          color: var(--text_accent) !important;
+        }
+
+        &:before {
+            display: inline-block;
+            font: normal normal normal 14px/1 FontAwesome;
+            font-size: inherit;
+            text-rendering: auto;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+
+            content: "\f005";
         }
     }
 }

@@ -43,9 +43,13 @@ var userCredential;
 var user;
 
 const initializeAuth = async (googleAuthToken) => {
+    if(googleAuthToken == undefined)
+        return undefined;
+
     const credential = GoogleAuthProvider.credential(null, googleAuthToken);
     userCredential = await signInWithCredential(getAuth(firebaseApp), credential);
     user = userCredential.user;
+    return user;
 }
 const clearAuth = async () => {
     userCredential = undefined;
@@ -87,17 +91,23 @@ const getFoodRating = async (food = '') => {
         return undefined;
     try {
         // Query the ratings for all food ratings for the given food item
-        const foodRatings = [];
-            
+        const foodRating = [];
+        let userRating = undefined;
         // Loop through each user in the object
-        for (const user in storedRatings) {
+        for (const anyUserUID in storedRatings) {
             // Check if the food exists in this user's object
-            if (storedRatings[user][food] != undefined) {
+            if (storedRatings[anyUserUID][food] != undefined) {
                 // If it does, push the value to the array
-                foodRatings.push(storedRatings[user][food]);
+                foodRating.push(storedRatings[anyUserUID][food]);
+                if(userAuthenticated() && anyUserUID === user.uid) {
+                    userRating = storedRatings[anyUserUID][food];
+                }
             }
         }
-        return foodRatings;
+        return {
+            foodRating: foodRating,
+            userRating: userRating
+        };
     }
     catch (error) {
         console.error(error);
