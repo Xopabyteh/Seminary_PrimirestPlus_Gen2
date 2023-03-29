@@ -17,11 +17,15 @@ const getScolarestTab = async () => {
     if(_scolarestTab != undefined)
         return _scolarestTab;
     
-    const queryOptions = { url: '*://*.mujprimirest.cz/*'};
+    const queryOptions = { 
+        active: true,
+        currentWindow: true,
+        url: '*://mujprimirest.cz/*'
+    };
 
     const [tab] = await chrome.tabs.query(queryOptions);
     if(tab != undefined && tab.id != undefined) {
-        setScolarestTab(tab);
+        console.log(tab);
         return tab;
     }
 
@@ -29,6 +33,14 @@ const getScolarestTab = async () => {
 }
 const setScolarestTab = async (tab) => {
     _scolarestTab = tab;
+}
+
+const reloadScolarestTab = async () => {
+    const tab = await getScolarestTab();
+    if(tab == undefined)
+        return;
+
+    await chrome.tabs.reload(tab.id);
 }
 
 import { loadStoredRatings } from '../globalServices/firebaseService';
@@ -97,9 +109,8 @@ const attemptWriteFoodRating = async (food = '', rating = 4) => {
             return -1;
         }
 
-        const scolarestTab = getScolarestTab()
-        chrome.tabs.reload(scolarestTab.id);
-        
+        await reloadScolarestTab();
+
         await fb_initializeAuth(authToken);
     }
 
@@ -175,9 +186,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         signIn(interactive).then(token => {
             sendResponse(token)
             if(reloadTab) {
-                getScolarestTab().then(scolarestTab => {
-                    chrome.tabs.reload(scolarestTab.id);
-                })
+                reloadScolarestTab();
             }
         });
         return true;
@@ -187,9 +196,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         const reloadTab = msg.reloadTab ?? false;
         signOut();
         if(reloadTab) {
-            getScolarestTab().then(scolarestTab => {
-                chrome.tabs.reload(scolarestTab.id);
-            })
+            reloadScolarestTab();
         }
         return false;
     }

@@ -146,7 +146,8 @@ const addRatingDisplay = async (foodRowElement = document.createElement(), foodO
         totalRatingsCount = 1;
     }
 
-    const median = (ratingCounts[0] + ratingCounts[1]*2 + ratingCounts[2]*3 + ratingCounts[3]*4) / totalRatingsCount;
+    let median = (ratingCounts[0] + ratingCounts[1]*2 + ratingCounts[2]*3 + ratingCounts[3]*4) / totalRatingsCount;
+    median = median.toFixed(2);
     const ratingStatisticsHTML = ratingStatisticsHTMLTemplate
                                 .replace('__SIMPLE_RATING__', `${median}`)
                                 .replace('__RATES_COUNT__', totalRatingsCount)
