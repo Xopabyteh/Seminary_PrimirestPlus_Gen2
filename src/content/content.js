@@ -130,7 +130,9 @@ const addRatingDisplay = async (foodRowElement = document.createElement(), foodO
         food: foodObject.foodName
     });
     const foodRating = foodRatingObject.foodRating;
-    const userRating = foodRatingObject.userRating;
+    let userRating = foodRatingObject.userRating;
+    let userRatedAlredy = userRating != undefined;
+
     logger.log(foodRating, 'incoming ratings');
 
     //0: number of 1s, 1: number of 2s, ...
@@ -141,22 +143,38 @@ const addRatingDisplay = async (foodRowElement = document.createElement(), foodO
         totalRatingsCount++;
     }
 
-    //Dont divide by zero, set all to 0
-    if(totalRatingsCount == 0) {
-        totalRatingsCount = 1;
+    const getFixedMedian = (totalRatingsCount, ratingCounts) => {
+        let median = (ratingCounts[0] + ratingCounts[1]*2 + ratingCounts[2]*3 + ratingCounts[3]*4) / totalRatingsCount;
+        median = median.toFixed(2);
+        return median;
     }
 
-    let median = (ratingCounts[0] + ratingCounts[1]*2 + ratingCounts[2]*3 + ratingCounts[3]*4) / totalRatingsCount;
-    median = median.toFixed(2);
-    const ratingStatisticsHTML = ratingStatisticsHTMLTemplate
-                                .replace('__SIMPLE_RATING__', `${median}`)
-                                .replace('__RATES_COUNT__', totalRatingsCount)
-                                .replace('__1_STARS_%__', `${(ratingCounts[0] / totalRatingsCount * 100.0)}%`)
-                                .replace('__2_STARS_%__', `${(ratingCounts[1] / totalRatingsCount * 100.0)}%`)
-                                .replace('__3_STARS_%__', `${(ratingCounts[2] / totalRatingsCount * 100.0)}%`)
-                                .replace('__4_STARS_%__', `${(ratingCounts[3] / totalRatingsCount * 100.0)}%`)
+    ratingStatisticsHolder.innerHTML = ratingStatisticsHTMLTemplate;
 
-    ratingStatisticsHolder.innerHTML = ratingStatisticsHTML;
+    const medianElement = ratingStatisticsHolder.querySelector('#rating-median');
+    const countElement = ratingStatisticsHolder .querySelector('#rating-count');
+    const stars1Element = ratingStatisticsHolder.querySelector('#rating-1stars');
+    const stars2Element = ratingStatisticsHolder.querySelector('#rating-2stars');
+    const stars3Element = ratingStatisticsHolder.querySelector('#rating-3stars');
+    const stars4Element = ratingStatisticsHolder.querySelector('#rating-4stars');
+    const ratingToPercentage = (rating, totalRatingsCount) => `${(rating / totalRatingsCount * 100.0)}%`;
+    const setStatisticsElements = async (median, totalRatingsCount, ratingCounts) => {
+        if(totalRatingsCount < 1)
+            return;
+
+        medianElement.innerHTML = median;
+        countElement.innerHTML = `${totalRatingsCount} ratings`;
+        stars1Element.style.setProperty('--value', ratingToPercentage(ratingCounts[0], totalRatingsCount));
+        stars2Element.style.setProperty('--value', ratingToPercentage(ratingCounts[1], totalRatingsCount));
+        stars3Element.style.setProperty('--value', ratingToPercentage(ratingCounts[2], totalRatingsCount));
+        stars4Element.style.setProperty('--value', ratingToPercentage(ratingCounts[3], totalRatingsCount));                
+    }
+
+    setStatisticsElements(
+        getFixedMedian(totalRatingsCount, ratingCounts),
+        totalRatingsCount,
+        ratingCounts
+    );
 
     //Controls
     let ratingControl = foodRowElement.querySelector('td:nth-child(2)');
@@ -180,7 +198,7 @@ const addRatingDisplay = async (foodRowElement = document.createElement(), foodO
         }
     }
 
-    const resetStars = () => {
+    const resetStarElements = () => {
         for (let i = 0; i < stars.length; i++) {
             stars[i].classList.toggle('hover', false);
 
@@ -193,28 +211,45 @@ const addRatingDisplay = async (foodRowElement = document.createElement(), foodO
     }
         
     stars.forEach(star => {
-      star.addEventListener('click', async () => {
-        const value = parseInt(star.getAttribute('value'));
-        const writeStatus = await writeFoodRating(foodObject.foodName, value);
-        if(writeStatus === 0) {
-            maxDecidedStarIndex = value;
-            resetStars();
-        }
-      });
-    
-      star.addEventListener('mouseover', () => {
-        const value = parseInt(star.getAttribute('value'));
-        setHoverStars(value);
-      });
-    
-      star.addEventListener('mouseout', () => {
-        resetStars();
-      });
+        star.addEventListener('click', async () => {
+            const value = parseInt(star.getAttribute('value'));
+            const writeStatus = await writeFoodRating(foodObject.foodName, value);
+            if(writeStatus === 0) {
+                //Update stars and statistics
+                ratingCounts[maxDecidedStarIndex-1]--;            
+
+                maxDecidedStarIndex = value;
+                resetStarElements();
+
+                ratingCounts[value-1]++;
+                if(!userRatedAlredy) {
+                    totalRatingsCount++;
+                }
+
+                setStatisticsElements(
+                    getFixedMedian(totalRatingsCount, ratingCounts),
+                    totalRatingsCount,
+                    ratingCounts
+                );
+
+                userRatedAlredy = true;
+                userRating = value;
+            }
+        });
+
+        star.addEventListener('mouseover', () => {
+            const value = parseInt(star.getAttribute('value'));
+            setHoverStars(value);
+        });
+
+        star.addEventListener('mouseout', () => {
+            resetStarElements();
+        });
     });
 
-    if(userRating != undefined) {
+    if(userRatedAlredy) {
         maxDecidedStarIndex = userRating;
-        resetStars();
+        resetStarElements();
     }
     foodRowElement.appendChild(ratingStatisticsHolder);
 }

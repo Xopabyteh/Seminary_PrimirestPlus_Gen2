@@ -241,6 +241,8 @@
                 border-radius: inherit;
                 
                 background: var(--text_header);
+
+                transition: width 500ms ease-in-out;
             }
         }
     }

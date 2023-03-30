@@ -109,9 +109,9 @@ const attemptWriteFoodRating = async (food = '', rating = 4) => {
             return -1;
         }
 
-        await reloadScolarestTab();
-
         await fb_initializeAuth(authToken);
+        
+        await reloadScolarestTab();
     }
 
     //'' - 0: Evil conversion to number
