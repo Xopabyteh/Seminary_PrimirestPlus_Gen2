@@ -25,18 +25,12 @@ const changeColorTheme = async (darkMode) => {
         root.style.setProperty('--background_dark_alternate'   ,  '#2F3437');
         root.style.setProperty('--background_dark'             ,  '#2c2f33');
         root.style.setProperty('--background_darkest'          ,  '#23272a');
-        root.style.setProperty('--attention_red', '#800000');
+        root.style.setProperty('--attention_red', '#DC143C');
         root.style.setProperty('--dark_mode' , 1);
 
     } else {
         //Light theme
 
-        // root.style.setProperty('--text_normal' 	            ,     '#000   ');
-        // root.style.setProperty('--text_header'                 ,  '#7871AA');
-        // root.style.setProperty('--background_bright'           ,  '#774E24');
-        // root.style.setProperty('--background_dark_alternate'   ,  '#AA7D48');
-        // root.style.setProperty('--background_dark'             ,  '#DCAB6B');
-        // root.style.setProperty('--background_darkest'          ,  '#E8F9FD'); 
         root.style.setProperty('--text_normal' , '#333');
         root.style.setProperty('--text_header' , '#007bff');
         root.style.setProperty('--text_accent' , '#ffc107 ');
