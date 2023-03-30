@@ -13,6 +13,7 @@
     --background_dark: #2c2f33;
     --background_darkest: #23272a;
     --text_accent: yellow;
+    --attention_red: red;
     //1 = true
     --dark_mode: 1;
 }
@@ -75,18 +76,7 @@ tr th,
     }
 }
 
-.action.favorite *
-{
-    & {
-        color: var(--text_accent) !important; 
-    }
-    &::before {
-        color: var(--text_accent) !important;
-    }
-}
-
 .fa-shopping-cart,
-.fa-times,
 .fa-star,
 .fa-print,
 .fa-download
@@ -95,14 +85,24 @@ tr th,
         color: transparent !important;
     }
     &::before {
-        color:var(--text_header) !important;
+        color:var(--text_accent) !important;
     }
     
 }
 
+.fa-times {
+    & {
+        color: transparent !important;
+    }
+    &::before {
+        color:var(--attention_red) !important;
+    }
+}
+
 
 a.disable .fa {
-    filter: brightness(0.5);
+    // filter: brightness(0.5);
+    opacity: 0.2;
 }
 
 table tr
@@ -132,6 +132,13 @@ select,
 }
 .panel-control select {
     background: var(--background_dark);
+}
+
+//Zrušit button
+.btn-sm.btn-danger,
+.btn-sm.btn-danger:hover
+{
+    background-color: transparent;
 }
 
 .order.completed,
