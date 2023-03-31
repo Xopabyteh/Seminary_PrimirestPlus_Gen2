@@ -129,9 +129,21 @@ const addRatingDisplay = async (foodRowElement = document.createElement(), foodO
         type: 'GET_FOOD_RATING',
         food: foodObject.foodName
     });
-    const foodRating = foodRatingObject.foodRating;
-    let userRating = foodRatingObject.userRating;
-    let userRatedAlredy = userRating != undefined;
+    logger.log(foodRatingObject, "food rating object")
+
+    let foodRating;
+    let userRating;
+    let userRatedAlredy;
+
+    if(foodRatingObject != undefined) {
+        foodRating = foodRatingObject.foodRating;
+        userRating = foodRatingObject.userRating;
+    } else {
+        foodRating = [];
+        userRating = undefined;
+    }
+
+    userRatedAlredy = userRating != undefined;    
 
     logger.log(foodRating, 'incoming ratings');
 
@@ -177,11 +189,11 @@ const addRatingDisplay = async (foodRowElement = document.createElement(), foodO
     );
 
     //Controls
-    let ratingControl = foodRowElement.querySelector('td:nth-child(2)');
-    ratingControl.outerHTML = ratingControlHTMLTemplate;
+    let ratingControl = document.createElement('td');
+    ratingControl.classList.add('rating-control');
+
+    ratingControl.innerHTML = ratingControlHTMLTemplate;
     
-    //Evil reload
-    ratingControl = foodRowElement.querySelector('td:nth-child(2)');
 
     const stars = ratingControl.querySelectorAll('a');
     let maxDecidedStarIndex = 0;
@@ -251,6 +263,8 @@ const addRatingDisplay = async (foodRowElement = document.createElement(), foodO
         maxDecidedStarIndex = userRating;
         resetStarElements();
     }
+
+    foodRowElement.appendChild(ratingControl);
     foodRowElement.appendChild(ratingStatisticsHolder);
 }
 

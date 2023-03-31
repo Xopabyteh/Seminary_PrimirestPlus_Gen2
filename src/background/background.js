@@ -5,8 +5,10 @@ const isScolarestUrl = (url) => {
         return false;
     if (!url.includes("mujprimirest.cz"))
         return false;
-    if (url.includes("auth"))
-        return false;
+        
+    //Primirest logo recolor in auth section
+    // if (url.includes("auth"))
+    //     return false;
 
     return true;
 }

@@ -26,6 +26,12 @@ body,
     background-color: var(--background_darkest) !important;
 }
 
+.auth {
+    background-color: var(--background_darkest) !important;
+    background-image: none !important; 
+}
+
+.login,
 .panel,
 .btn,
 .menu ul.submenu,

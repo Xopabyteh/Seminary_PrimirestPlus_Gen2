@@ -41,12 +41,12 @@
         tr {
             & {
                 display: grid;
-                grid-template-columns: 512px 10% 10% 10% 10%;
+                grid-template-columns: 512px 1rem 10% 10% 10% 10%;
                 grid-template-rows: 4em 3em auto;
                 grid-template-areas:
-                "food-images-holder name name name name"
-                "food-images-holder calories alergies star cart"
-                "food-images-holder rating rating rating rating";
+                "food-images-holder . name name name name"
+                "food-images-holder . calories alergies star cart"
+                "food-images-holder . rating rating rating rating";
                 align-items: center;
                 justify-content: start;
                 
@@ -59,12 +59,14 @@
                     width: auto;
                     text-align: center;
                 }
-                // &:nth-child(2) {
-                //     grid-area: star;
+                //Original primirest star
+                &:nth-child(2) {
+                    display: none !important;
+                    // grid-area: star;
                     
-                //     width: auto;
-                //     text-align: center;
-                // }
+                    // width: auto;
+                    // text-align: center;
+                }
                 
                 /*Skip child(3) because it's weird product name*/
                 &:nth-child(3) {
